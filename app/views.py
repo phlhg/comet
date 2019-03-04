@@ -1,13 +1,14 @@
 from tkinter import *
 
 
-class MainView:
+class ViewManager:
 
     def __init__(self, root):
         self.root = root
         self.pages = []
 
         self.root.geometry("920x720")
+        self.root["bg"] = "#fff"
 
     def addPage(self, name):
         view = globals()[name+"View"](self.root, self.newFrame(name))
@@ -17,6 +18,9 @@ class MainView:
     def newFrame(self, name):
         frame = Frame(self.root, bg="#fff", height=720, width=920)
         frame.grid(row=0, column=0, sticky=N+W+S+E)
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
         return frame
 
 
@@ -34,7 +38,6 @@ class MainView(BaseView):
         self.create()
 
     def create(self):
-        self.root["frame"] = "#fff"
         sider = Frame(self.frame, bg="#eee", height=720, width=250)
         sider.grid(row=0, column=0, sticky=N+W+S)
         header = Frame(self.frame, bg="#ddd", height=60, width=920)
@@ -46,8 +49,8 @@ class MainView(BaseView):
 
 class SettingsView(BaseView):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, root, frame):
+        super().__init__(root, frame)
         self.create()
 
     def create(self):
