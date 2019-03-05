@@ -14,12 +14,15 @@ class ViewManager:
         self.root.geometry("920x720")
         self.root["bg"] = "#fff"
 
-    def addView(self, name):
+    def show(self, name):
+        view = self.getView(name)
+        view.frame.tkraise()
+
+    def getView(self, name):
         if name+"View" not in self.viewsIndex:
             view = globals()[name+"View"](self.root, self.controller, self.newFrame(name))
             self.views.append(view)
             self.viewsIndex.append(name+"View")
-            print("NEW")
             return self.views[len(self.views)-1]
         else:
             view = self.views[self.viewsIndex.index(name+"View")]
@@ -40,6 +43,16 @@ class BaseView:
         self.root = root
         self.controller = controller
         self.frame = frame
+        self.var = {}
+
+    def set(self, name, value):
+        self.var[name] = value
+
+    def get(self, name):
+        if name in self.var:
+            return self.var[name]
+        else:
+            return '['+name+']'
 
 
 class MainView(BaseView):
@@ -71,6 +84,6 @@ class SettingsView(BaseView):
         header = Frame(self.frame, bg="#ddd", height=80, width=920)
         header.grid(row=0, column=0, sticky=N+W+E)
 
-        btn1 = Button(header, bd=0, bg="transparent" text="  ❮   ", command=lambda controller=self.controller: controller.view("Main"))
+        btn1 = Button(header, bd=0, text="  ❮   ", command=lambda controller=self.controller: controller.view("Main"))
         btn1.grid(row=0, column=0)
 
