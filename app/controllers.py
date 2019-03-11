@@ -20,6 +20,3 @@ class Core(BaseController):
         super().__init__(*args)
         self.client = Client()
         self.view("Main")
-
-# nicos comment
-# hello nico
