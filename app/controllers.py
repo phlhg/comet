@@ -1,6 +1,7 @@
 from .views import *
 from .models import *
 
+
 class BaseController:
 
     def __init__(self, root):
@@ -19,3 +20,5 @@ class Core(BaseController):
         super().__init__(*args)
         self.client = Client()
         self.view("Main")
+
+# nicos comment
