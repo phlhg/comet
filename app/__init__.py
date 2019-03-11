@@ -1,4 +1,5 @@
 from tkinter import *
+from socket import *
 from .controllers import *
 from .models import *
 from .views import *

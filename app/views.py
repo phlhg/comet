@@ -9,7 +9,7 @@ class ViewManager:
         self.views = []
         self.viewsIndex = []
 
-        self.root.title("P2P Chat by Nico Widmer & Philippe Hugo")
+        self.root.title("P2P Chat by Nico Müller & Philippe Hugo")
         self.root.iconbitmap('favicon.ico')
         self.root.geometry("920x720")
         self.root["bg"] = "#fff"
@@ -62,13 +62,16 @@ class MainView(BaseView):
         self.create()
 
     def create(self):
-        sider = Frame(self.frame, bg="#eee", height=720, width=250)
-        sider.grid(row=0, column=0, sticky=N+W+S)
-        header = Frame(self.frame, bg="#ddd", height=80, width=920)
-        header.grid(row=0, column=0, sticky=N+W+E)
+        self.sider = Frame(self.frame, bg="#eee", height=720, width=250)
+        self.sider.grid(row=0, column=0, sticky=N+W+S)
+        self.header = Frame(self.frame, bg="#ddd", height=80, width=920)
+        self.header.grid(row=0, column=0, sticky=N+W+E)
 
-        btn1 = Button(header, bd=0 ,text="Einstellungen", command=lambda controller=self.controller: controller.view("Settings"))
-        btn1.grid(row=0, column=0)
+        self.labelheader = Label(self.header, font='Helvetica 10 bold', bg="#ddd", padx=10, pady=10, text=self.controller.client.ip)
+        self.labelheader.grid(row=0, column=0)
+
+        self.labelheader2 = Label(self.header, text=self.get("name2"))
+        self.labelheader2.grid(row=0, column=1)
 
 
 
