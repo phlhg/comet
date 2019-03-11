@@ -25,17 +25,24 @@ class Listener:
         connections[self.addr] = self.connection
         print('Connected by', self.addr)
 
+def connect(ip, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((ip, port))
 
 def listen(self):
     l = Listener()
     l.connection.sendall()
 
-while True:
-    data = conn.recv(1024)
-    print("data:", data)
-    if not data:    # data == ''
-        break
-    conn.sendall(data)
+def send(ip, port):
+    if ip not in connections:
+        connect(ip, port)
+
+# while True:
+#     data = conn.recv(1024)
+#     print("data:", data)
+#     if not data:    # data == ''
+#         break
+#     conn.sendall(data)
 
 
 
