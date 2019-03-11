@@ -22,3 +22,4 @@ class Core(BaseController):
         self.view("Main")
 
 # nicos comment
+# hello nico
