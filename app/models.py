@@ -39,7 +39,7 @@ def connect(ip):
 # open for requests and automatically redirect to open port
 def listen():
     while True:  # don't close socket after client disconnected
-        listener = Listener(DEFAULT_PORT) # listener waits for connections and adds them to the list
+        listener = Listener(DEFAULT_PORT)  # listener waits for connections and adds them to the list
 
 
 def send(ip, text):
