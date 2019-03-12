@@ -2,7 +2,9 @@ import socket
 import random
 import threading
 
-connections = {}
+connections = {}    # "ip": socket
+DEFAULT_PORT = 1515
+
 
 class Client:
 
@@ -12,10 +14,11 @@ class Client:
 
 class Listener:
 
-    def __init__(self):
+    # init runs until it receives a connection
+    def __init__(self, port):
         # init socket and bind to port
         self.host = ''
-        self.port = random.randint(12345, 54321)
+        self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
         # wait for someone to connect
@@ -25,24 +28,24 @@ class Listener:
         connections[self.addr] = self.connection
         print('Connected by', self.addr)
 
-def connect(ip, port):
+
+def connect(ip):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((ip, port))
+    s.connect((ip, DEFAULT_PORT))
+    connections[ip] = s  # add socket connection to list
+    s.send(b'hello there')
 
-def listen(self):
-    l = Listener()
-    l.connection.sendall()
 
-def send(ip, port):
+# open for requests and automatically redirect to open port
+def listen():
+    while True:  # don't close socket after client disconnected
+        listener = Listener(DEFAULT_PORT) # listener waits for connections and adds them to the list
+
+
+def send(ip, text):
     if ip not in connections:
-        connect(ip, port)
-
-# while True:
-#     data = conn.recv(1024)
-#     print("data:", data)
-#     if not data:    # data == ''
-#         break
-#     conn.sendall(data)
-
-
+        print("connection failed :/")
+        return
+    else:
+        connections[ip].send(text)
 
