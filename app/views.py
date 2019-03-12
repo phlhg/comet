@@ -1,4 +1,5 @@
 from tkinter import *
+from .costumelements import *
 
 class ViewManager:
 
@@ -63,15 +64,30 @@ class MainView(BaseView):
 
     def create(self):
         self.sider = Frame(self.frame, bg="#eee", height=720, width=250)
-        self.sider.grid(row=0, column=0, sticky=N+W+S)
-        self.header = Frame(self.frame, bg="#ddd", height=80, width=920)
-        self.header.grid(row=0, column=0, sticky=N+W+E)
+        self.sider.pack()
+        self.sider.place(relx=0, rely=0, relh=1, relw=0.25)
+        self.sider.columnconfigure(0, weight=1)
 
-        self.labelheader = Label(self.header, font='Helvetica 10 bold', bg="#ddd", padx=10, pady=10, text=self.controller.client.ip)
-        self.labelheader.grid(row=0, column=0)
+        self.content = Frame(self.frame, bg="#fff", height=720, width=670)
+        self.content.place(relx=0.25, rely=0, relh=1, relw=0.75)
 
-        self.labelheader2 = Label(self.header, text=self.get("name2"))
-        self.labelheader2.grid(row=0, column=1)
+        l = Label(self.content, text="Max Muster", bg="#fff", anchor="w", pady=10, padx=20, font=("Segoe UI",24,"bold"))
+        l.place(relx=0, rely=0, relw=1)
+
+        e = Entry(self.content, bg="#ddd", fg="#333", borderwidth=20, relief=FLAT, font=("Segoe UI",12))
+        e.place(relx=1, rely=1, relw=1, anchor=SE)
+
+        self.siderbutton = MenuButton(self.sider, text="⚪ "+self.controller.client.ip, command=lambda controller=self.controller: controller.view("Settings"))
+        self.siderbutton.grid(row=0, column=0, columnspan=1, sticky=W+E)
+
+        self.siderbutton2 = MenuButton(self.sider, text="▢ Max Müller")
+        self.siderbutton2.grid(row=1, column=0, columnspan=1, sticky=W+E)
+
+        self.siderbutton2 = MenuButton(self.sider, text="▢ Hans Muster")
+        self.siderbutton2.grid(row=2, column=0, columnspan=1, sticky=W+E)
+
+        self.siderbutton2 = MenuButton(self.sider, text="▢ Thomas Dach")
+        self.siderbutton2.grid(row=3, column=0, columnspan=1, sticky=W+E)
 
 
 
@@ -82,11 +98,14 @@ class SettingsView(BaseView):
         self.create()
 
     def create(self):
-        sider = Frame(self.frame, bg="#eee", height=720, width=250)
-        sider.grid(row=0, column=0, sticky=N+W+S)
-        header = Frame(self.frame, bg="#ddd", height=80, width=920)
-        header.grid(row=0, column=0, sticky=N+W+E)
+        self.sider = Frame(self.frame, bg="#eee", height=720, width=250)
+        self.sider.pack()
+        self.sider.place(relx=0, rely=0, relh=1, relw=0.25)
+        self.sider.columnconfigure(0, weight=1)
 
-        btn1 = Button(header, bd=0, text="  ❮   ", command=lambda controller=self.controller: controller.view("Main"))
-        btn1.grid(row=0, column=0)
+        self.content = Frame(self.frame, bg="#fff", height=720, width=670)
+        self.content.place(relx=0.25, rely=0, relh=1, relw=0.75)
+
+        btn1 = MenuButton(self.sider,  text="❮ Chats", command=lambda controller=self.controller: controller.view("Main"))
+        btn1.grid(row=0, column=0, columnspan=1, sticky=W+E)
 
