@@ -110,7 +110,6 @@ class MainView(BaseView):
         self.siderbutton2.grid(row=3, column=0, columnspan=1, sticky=W+E)
 
 
-
 class SettingsView(BaseView):
 
     def __init__(self, *args, **kwargs):
