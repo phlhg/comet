@@ -71,11 +71,31 @@ class MainView(BaseView):
         self.content = Frame(self.frame, bg="#fff", height=720, width=670)
         self.content.place(relx=0.25, rely=0, relh=1, relw=0.75)
 
-        l = Label(self.content, text="Max Muster", bg="#fff", anchor="w", pady=10, padx=20, font=("Segoe UI",24,"bold"))
-        l.place(relx=0, rely=0, relw=1)
+
 
         e = Entry(self.content, bg="#ddd", fg="#333", borderwidth=20, relief=FLAT, font=("Segoe UI",12))
-        e.place(relx=1, rely=1, relw=1, anchor=SE)
+        e.place(relx=1, rely=1, relw=1, relh=0.08, anchor=SE)
+
+        s = Button(self.content, text="➞", bd=0, highlightthickness=0, activeforeground="#fff", activebackground="#06d", bg="#09f", fg="#fff", font=("Segoe UI",24,"bold"))
+        s.place(relx=0.92, rely=0.92, relw=0.08, relh=0.08)
+
+        self.messages = Frame(self.content, bg="#f00")
+        self.messages.place(relx=0, rely=0, relh=0.92, relw=1)
+
+        self.canvas = Canvas(self.messages)
+        self.canvas.pack()
+        self.canvas.create_window((5,5), window=self.messages, anchor="nw")
+
+        scrollbar = Scrollbar(self.content, command=self.canvas.yview)
+        scrollbar.pack(side=RIGHT, fill=Y)
+        self.canvas.config(yscrollcommand=scrollbar.set)
+
+        l = Label(self.canvas, text="Max Muster", bg="#fff", anchor="w", pady=0, padx=20, font=("Segoe UI",24,"bold"))
+        l.place(relx=0, rely=0, relw=1)
+
+        for i in range(50):
+            s = Button(self.messages, text=("Nachricht "+str(i)))
+            s.pack()
 
         self.siderbutton = MenuButton(self.sider, text="⚪ "+self.controller.client.ip, command=lambda controller=self.controller: controller.view("Settings"))
         self.siderbutton.grid(row=0, column=0, columnspan=1, sticky=W+E)

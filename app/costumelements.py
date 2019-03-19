@@ -11,7 +11,7 @@ class MenuButton(Button):
         self['font'] = font=("Segoe UI",12)
         self['anchor'] = "w"
         self['padx'] = 20
-        self['pady'] = 10,
+        self['pady'] = 10
         self.bind("<Enter>", self.on_enter)
         self.bind("<Leave>", self.on_leave)
 
@@ -20,3 +20,9 @@ class MenuButton(Button):
 
     def on_leave(self, e):
         self['background'] = self.defaultBackground
+
+
+class Message(Label):
+
+    def __init__(self, master, **kw):
+        Label.__init__(self, master=master, **kw)
