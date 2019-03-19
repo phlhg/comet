@@ -1,32 +1,26 @@
 import socket
-import random
 import threading
 
-connections = {}    # "ip": socket
-DEFAULT_PORT = 1515
+connections = {}  # "ip": socket
+DEFAULT_PORT = 1516
 
 
-class Client:
+def listen():
+    host = ''
+    port = DEFAULT_PORT
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((host, port))
+    print("Running at:", socket.gethostbyname(socket.gethostname()))
 
-    def __init__(self):
-        self.ip = socket.gethostbyname(socket.getfqdn())
+    while True:
+        s.listen()
+        conn, addr = s.accept()
+        connections[addr] = conn
+        print(connections)
 
 
-class Listener:
-
-    # init runs until it receives a connection
-    def __init__(self, port):
-        # init socket and bind to port
-        self.host = ''
-        self.port = port
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind((self.host, self.port))
-        # wait for someone to connect
-        self.socket.listen()
-        self.connection, self.addr = socket.accept()
-        # add new connection to dict with ip as key
-        connections[self.addr] = self.connection
-        print('Connected by', self.addr)
+def start_listening():
+    threading.Thread(target=listen).start()
 
 
 def connect(ip):
@@ -36,12 +30,6 @@ def connect(ip):
     s.send(b'hello there')
 
 
-# open for requests and automatically redirect to open port
-def listen():
-    while True:  # don't close socket after client disconnected
-        listener = Listener(DEFAULT_PORT)  # listener waits for connections and adds them to the list
-
-
 def send(ip, text):
     if ip not in connections:
         print("connection failed :/")
@@ -49,3 +37,11 @@ def send(ip, text):
     else:
         connections[ip].send(text)
 
+
+if __name__ == "__main__":
+
+    start_listening()
+
+    connect(input("ip: "))
+    print(list(connections.keys()))
+    # send("WHOAHSDIJDOADC")
