@@ -40,7 +40,7 @@ def send(ip, text):
     else:
         connections[ip].send(text)
 
-
+# testing
 if __name__ == "__main__":
 
     start_listening()

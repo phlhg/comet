@@ -1,0 +1,23 @@
+{
+  "profile": {
+    "username": "",
+    "token": ""
+  },
+  "contacts": {
+    "000000": {
+      "username": "test",
+      "messages": [
+        {
+          "text": "blabalaasda",
+          "self": false,
+          "utc": 0
+        },
+        {
+          "text": "another msg",
+          "self": true,
+          "utc": 1
+        }
+      ]
+    }
+  }
+}

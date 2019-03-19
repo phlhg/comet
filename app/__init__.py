@@ -12,3 +12,4 @@ root.rowconfigure(0, weight=1)
 base = controllers.Core(root)
 
 root.mainloop()
+
