@@ -4,6 +4,9 @@ import threading
 connections = {}  # "ip": socket
 DEFAULT_PORT = 1516
 
+class Client:
+  def __init__(self):
+        self.ip = socket.gethostbyname(socket.gethostname())
 
 def listen():
     host = ''
