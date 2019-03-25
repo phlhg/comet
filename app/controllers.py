@@ -20,6 +20,7 @@ class Core(BaseController):
         super().__init__(*args)
         self.storage = Storage(self)
         self.profile = Profile(self)
+        self.contacts = ContactManager(self.storage.data["contacts"])
         self.client = Client(self)
         self.view("Main")
 

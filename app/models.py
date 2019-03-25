@@ -3,14 +3,12 @@ import os
 import socket
 import threading
 import random
+from datetime import datetime
 
 
 DEFAULT_PORT = 1516
 DATA_URI = "app/data.json"
 
-
-class Client:
-    def __init__(self):
 
 class BaseModel:
 
@@ -24,7 +22,7 @@ class Client(BaseModel):
         super().__init__(*args, **kwargs)
         self.connections = {}  # "ip": socket
         self.ip = socket.gethostbyname(socket.gethostname())
-        self.token = get_token()
+        self.token = self.controller.profile.getToken()
         self.data = self.controller.storage.data
         threading.Thread(target=self.listen).start()
 
@@ -87,6 +85,44 @@ class Profile(BaseModel):
         for i in range(lenght):
             token += all[random.randint(0, allLenght-1)]
         return token
+
+
+class ContactManager:
+
+    def __init__(self, data):
+        self.contacts = {}
+        self.getContacts(data)
+
+    def getContacts(self, data):
+        print(data)
+        for token, contactData in data.items():
+            self.contacts[token] = Contact(token, contactData)
+
+
+class Contact:
+
+    def __init__(self, token, data):
+        self.token = token
+        self.ip = data["ip"]
+        self.username = data["username"]
+        self.messages = []
+        self.getMessages(data["messages"])
+
+    def getMessages(self, data):
+        for message in data:
+            self.messages.append(Message(message))
+
+    def sendMessage(self, text):
+        data = {"text": text, "self": True, "utc": datetime.utcnow()}
+        self.messages.append(Message(data))
+
+
+class Message:
+
+    def __init__(self, data):
+        self.text = data["text"]
+        self.self = data["self"]
+        self.time = data["utc"]
 
 
 class Storage(BaseModel):
