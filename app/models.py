@@ -2,9 +2,7 @@ import json
 import os
 import socket
 import threading
-from . import base
 
-connections = {}  # "ip": socket
 DEFAULT_PORT = 1516
 DATA_URI = "app/data.json"
 
@@ -22,7 +20,10 @@ class Client(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.connections = {}  # "ip": socket
         self.ip = socket.gethostbyname(socket.gethostname())
+        self.token = get_token()
+        self.data = self.controller.storage.data
         threading.Thread(target=self.listen).start()
 
     def listen(self):
@@ -32,26 +33,31 @@ class Client(BaseModel):
         while True:
             s.listen()
             conn, addr = s.accept()
-            conn.send(bytes(base.storage.data["profile"]))
-            connections[addr] = conn
-            print(connections)
+            s.setblocking(False)
+            conn.send(bytes(self.data['profile']))
+            self.connections[addr] = conn
+            print(self.connections)
 
-    def connect(self, ip):
+    def connect_by_ip(self, ip):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
-        connections[ip] = s  # add socket connection to list
+        self.connections[ip] = s  # add socket connection to list
         print("connected to", s)
-        s.send(b'hello there')
+        s.send(self.data['profile'])
 
     def connect_by_token(self, token):
+        self.connect_by_ip(self.connections[self.data['contacts'][token]['ip']])
 
-
-    def send(self, token, text):
-        if self.ip not in connections:
+    def send(self, ip, text):
+        if ip not in self.connections:
             print("connection doesn't exist :/")
             return
         else:
-            connections[self.ip].send(text)
+            self.connections[ip].sendall(text)
+
+    def update(self):
+        for s in self.connections.values():
+            s.recv()
 
 
 class Storage(BaseModel):
@@ -79,45 +85,3 @@ class Storage(BaseModel):
     def createData(self):
         self.data = {"profile": {"username": "", "token": ""}, "contacts": {}}
         self.writeData()
-
-
-def listen():
-    host = ''
-    port = DEFAULT_PORT
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((host, port))
-    print("Running at:", socket.gethostbyname(socket.gethostname()))
-
-    while True:
-        s.listen()
-        conn, addr = s.accept()
-        connections[addr] = conn
-        print(connections)
-
-
-def start_listening():
-    threading.Thread(target=listen).start()
-
-
-def connect(ip):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((ip, DEFAULT_PORT))
-    connections[ip] = s  # add socket connection to list
-    s.send(b'hello there')
-
-
-def send(ip, text):
-    if ip not in connections:
-        print("connection failed :/")
-        return
-    else:
-        connections[ip].send(text)
-
-# testing
-if __name__ == "__main__":
-
-    start_listening()
-
-    connect(input("ip: "))
-    print(list(connections.keys()))
-    # send("WHOAHSDIJDOADC")

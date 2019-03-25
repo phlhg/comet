@@ -7,6 +7,7 @@
   },
   "contacts": {
     "000000": {
+      "ip": "1.1.1.1",
       "username": "test",
       "messages": [
         {
