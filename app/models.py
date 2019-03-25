@@ -1,12 +1,52 @@
+import json
+import os
 import socket
 import threading
 
 connections = {}  # "ip": socket
 DEFAULT_PORT = 1516
+DATA_URI = "app/data.json"
 
-class Client:
-  def __init__(self):
+
+class BaseModel:
+
+    def __init__(self,controller):
+        self.controller = controller
+
+
+class Client(BaseModel):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.ip = socket.gethostbyname(socket.gethostname())
+
+
+class Storage(BaseModel):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dataLoaded = False
+        self.data = {}
+        self.loadData()
+
+    def save(self):
+        self.writeData()
+
+    def loadData(self):
+        if not os.path.isfile(DATA_URI):
+            self.createData()
+        with open(DATA_URI, "r") as f:
+            self.data = json.loads(f.read())
+            self.dataLoaded = True
+
+    def writeData(self):
+        with open(DATA_URI, "w") as f:
+            f.write(json.dumps(self.data))
+
+    def createData(self):
+        self.data = {"profile": {"username": "", "token": ""}, "contacts": {}}
+        self.writeData()
+
 
 def listen():
     host = ''
