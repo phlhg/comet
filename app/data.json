@@ -3,6 +3,8 @@
     "username": "",
     "token": ""
   },
+  "settings": {
+  },
   "contacts": {
     "000000": {
       "username": "test",
