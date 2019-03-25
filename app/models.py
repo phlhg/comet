@@ -28,11 +28,10 @@ class Client:
         connections[ip] = s  # add socket connection to list
         s.send(b'hello there')
 
-
-    def send(token, text):
-        if ip not in connections:
+    def send(self, token, text):
+        if self.ip not in connections:
             print("connection failed :/")
             return
         else:
-            connections[ip].send(text)
+            connections[self.ip].send(text)
 
