@@ -9,9 +9,6 @@ DEFAULT_PORT = 1516
 DATA_URI = "app/data.json"
 
 
-class Client:
-    def __init__(self):
-
 class BaseModel:
 
     def __init__(self,controller):
@@ -24,7 +21,7 @@ class Client(BaseModel):
         super().__init__(*args, **kwargs)
         self.connections = {}  # "ip": socket
         self.ip = socket.gethostbyname(socket.gethostname())
-        self.token = get_token()
+        self.token = self.controller.Profile.getToken()
         self.data = self.controller.storage.data
         threading.Thread(target=self.listen).start()
 
