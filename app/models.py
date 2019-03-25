@@ -70,19 +70,19 @@ class Profile(BaseModel):
 
 
     def getToken(self):
-        if self.controller.storage.data["profile"]["token"] == 0:
+        if self.controller.storage.data["profile"]["token"] == "":
             self.controller.storage.data["profile"]["token"] = self.generateToken()
             self.controller.storage.save()
         return self.controller.storage.data["profile"]["token"]
 
 
-    def generateToken(lenght=5):
+    def generateToken(self,l=5):
         chars = 'abcdefghijklmnopqrstuvwxyz'.upper()
         digits = '0123456789'
         all = chars+digits*3
         allLenght = len(all)
         token = ""
-        for i in range(lenght):
+        for i in range(0, l):
             token += all[random.randint(0, allLenght-1)]
         return token
 
@@ -90,14 +90,22 @@ class Profile(BaseModel):
 class ContactManager:
 
     def __init__(self, data):
-        self.contacts = {}
+        self.contacts = []
         self.getContacts(data)
 
     def getContacts(self, data):
-        print(data)
         for token, contactData in data.items():
-            self.contacts[token] = Contact(token, contactData)
+            self.contacts.append(Contact(token, contactData))
 
+    def addContact(self,token, ip, username):
+        data = {"token": token, "ip": ip, "username": username, "messages": []}
+        self.contacts.append(Contact(data))
+
+    def get(self, token):
+        contact = [c for c in self.contacts if c.token == token] #filter(lambda c: c.token == token, self.contacts)
+        if not contact[0]:
+            return False
+        return contact[0]
 
 class Contact:
 
@@ -111,6 +119,10 @@ class Contact:
     def getMessages(self, data):
         for message in data:
             self.messages.append(Message(message))
+
+    def receiveMessage(self, text, time):
+        data = {"text": text, "self": False, "utc": time}
+        self.messages.append(Message(data))
 
     def sendMessage(self, text):
         data = {"text": text, "self": True, "utc": datetime.utcnow()}
