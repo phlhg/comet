@@ -18,7 +18,8 @@ class Core(BaseController):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.client = Client(self)
         self.storage = Storage(self)
+        self.profile = Profile(self)
+        self.client = Client(self)
         self.view("Main")
 

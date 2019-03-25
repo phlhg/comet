@@ -2,6 +2,8 @@ import json
 import os
 import socket
 import threading
+import random
+
 
 DEFAULT_PORT = 1516
 DATA_URI = "app/data.json"
@@ -38,6 +40,7 @@ class Client(BaseModel):
             self.connections[addr] = conn
             print(self.connections)
 
+
     def connect_by_ip(self, ip):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
@@ -58,6 +61,32 @@ class Client(BaseModel):
     def update(self):
         for s in self.connections.values():
             s.recv()
+
+
+class Profile(BaseModel):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.username = self.controller.storage.data["profile"]["username"]
+        self.token = self.getToken()
+
+
+    def getToken(self):
+        if self.controller.storage.data["profile"]["token"] == 0:
+            self.controller.storage.data["profile"]["token"] = self.generateToken()
+            self.controller.storage.save()
+        return self.controller.storage.data["profile"]["token"]
+
+
+    def generateToken(lenght=5):
+        chars = 'abcdefghijklmnopqrstuvwxyz'.upper()
+        digits = '0123456789'
+        all = chars+digits*3
+        allLenght = len(all)
+        token = ""
+        for i in range(lenght):
+            token += all[random.randint(0, allLenght-1)]
+        return token
 
 
 class Storage(BaseModel):
@@ -85,3 +114,4 @@ class Storage(BaseModel):
     def createData(self):
         self.data = {"profile": {"username": "", "token": ""}, "contacts": {}}
         self.writeData()
+
