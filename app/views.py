@@ -63,10 +63,9 @@ class MainView(BaseView):
         self.create()
 
     def create(self):
-        self.sider = Frame(self.frame, bg="#eee", height=720, width=250)
+        self.sider = Frame(self.frame, bg="#eee")
         self.sider.pack()
         self.sider.place(relx=0, rely=0, relh=1, relw=0.25)
-        self.sider.columnconfigure(0, weight=1)
 
         self.content = Frame(self.frame, bg="#fff", height=720, width=670)
         self.content.place(relx=0.25, rely=0, relh=1, relw=0.75)
@@ -97,17 +96,28 @@ class MainView(BaseView):
             s = Button(self.messages, text=("Nachricht "+str(i)))
             s.pack()
 
-        self.siderbutton = MenuButton(self.sider, text="⚪ "+self.controller.client.ip, command=lambda controller=self.controller: controller.view("Settings"))
-        self.siderbutton.grid(row=0, column=0, columnspan=1, sticky=W+E)
 
-        self.siderbutton2 = MenuButton(self.sider, text="▢ Max Müller")
-        self.siderbutton2.grid(row=1, column=0, columnspan=1, sticky=W+E)
 
-        self.siderbutton2 = MenuButton(self.sider, text="▢ Hans Muster")
-        self.siderbutton2.grid(row=2, column=0, columnspan=1, sticky=W+E)
+        self.contactList = Frame(self.sider, bg="#eee")
+        self.contactList.place(relx=0, rely=0, relh=0.92, relw=1)
+        self.contactList.columnconfigure(0, weight=1)
 
-        self.siderbutton2 = MenuButton(self.sider, text="▢ Thomas Dach")
-        self.siderbutton2.grid(row=3, column=0, columnspan=1, sticky=W+E)
+
+        self.settings = Frame(self.sider, bg="#eee")
+        self.settings.pack()
+        self.settings.place(relx=0, rely=0.92, relh=0.08, relw=1)
+
+        self.siderbutton = MenuButton(self.settings, text="⚪ "+self.controller.client.ip, command=lambda controller=self.controller: controller.view("Settings"))
+        self.siderbutton.place(relx=0, rely=0, relh=1, relw=1)
+
+        i = 0
+        for contact in self.controller.contacts.contacts:
+            ctn = MenuButton(self.contactList, text="▢ "+contact.username)
+            ctn.grid(row=(i+1), column=0, columnspan=1, sticky=W+E)
+            i += 1
+
+        ctn = MenuButton(self.contactList, text="+ Kontakt hinzufügen")
+        ctn.grid(row=(i+1), column=0, columnspan=1, sticky=W+E)
 
 
 class SettingsView(BaseView):
@@ -125,6 +135,6 @@ class SettingsView(BaseView):
         self.content = Frame(self.frame, bg="#fff", height=720, width=670)
         self.content.place(relx=0.25, rely=0, relh=1, relw=0.75)
 
-        btn1 = MenuButton(self.sider,  text="❮ Chats", command=lambda controller=self.controller: controller.view("Main"))
+        btn1 = MenuButton(self.sider,  text="❮"+" "*3+"Einstellungen", command=lambda controller=self.controller: controller.view("Main"))
         btn1.grid(row=0, column=0, columnspan=1, sticky=W+E)
 
