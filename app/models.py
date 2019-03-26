@@ -3,6 +3,7 @@ import os
 import socket
 import threading
 import random
+from datetime import datetime
 
 
 DEFAULT_PORT = 1516
@@ -12,7 +13,7 @@ DATA_URI = "app/data.json"
 class BaseModel:
 
     def __init__(self,controller):
-        self.controller = controller
+        self.core = controller
 
 
 class Client(BaseModel):
@@ -21,8 +22,8 @@ class Client(BaseModel):
         super().__init__(*args, **kwargs)
         self.connections = {}  # "ip": socket
         self.ip = socket.gethostbyname(socket.gethostname())
-        self.token = self.controller.Profile.getToken()
-        self.data = self.controller.storage.data
+        self.token = self.core.profile.getToken()
+        self.data = self.core.storage.data
         threading.Thread(target=self.listen).start()
 
     def listen(self):
@@ -64,15 +65,15 @@ class Profile(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.username = self.controller.storage.data["profile"]["username"]
+        self.username = self.core.storage.data["profile"]["username"]
         self.token = self.getToken()
 
 
     def getToken(self):
-        if self.controller.storage.data["profile"]["token"] == 0:
-            self.controller.storage.data["profile"]["token"] = self.generateToken()
-            self.controller.storage.save()
-        return self.controller.storage.data["profile"]["token"]
+        if self.core.storage.data["profile"]["token"] == 0:
+            self.core.storage.data["profile"]["token"] = self.generateToken()
+            self.core.storage.save()
+        return self.core.storage.data["profile"]["token"]
 
 
     def generateToken(lenght=5):
