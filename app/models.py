@@ -23,7 +23,7 @@ class Client(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ip = socket.gethostbyname(socket.gethostname())
-        self.token = self.core.Profile.getToken()
+        self.token = self.core.profile.getToken()
         self.data = self.core.storage.data
         self.contacts = self.core.contacts
         
