@@ -11,7 +11,6 @@ DATA_URI = "app/data.json"
 
 
 class BaseModel:
-
     def __init__(self, core):
         self.core = core
 
@@ -24,7 +23,6 @@ class Client(BaseModel):
         self.ip = socket.gethostbyname(socket.gethostname())
         self.token = self.core.profile.getToken()
         self.data = self.core.storage.data
-
         threading.Thread(target=self.listen).start()
 
     def listen(self):
