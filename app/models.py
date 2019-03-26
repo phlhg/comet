@@ -24,6 +24,7 @@ class Client(BaseModel):
         self.ip = socket.gethostbyname(socket.gethostname())
         self.token = self.core.profile.getToken()
         self.data = self.core.storage.data
+
         threading.Thread(target=self.listen).start()
 
     def listen(self):
