@@ -19,7 +19,6 @@ class Client(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.connections = {}  # "ip": socket
         self.ip = socket.gethostbyname(socket.gethostname())
         self.token = self.controller.Profile.getToken()
         self.data = self.controller.storage.data
@@ -29,36 +28,20 @@ class Client(BaseModel):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.ip, DEFAULT_PORT))
         print("Running at:", socket.gethostbyname(socket.gethostname()))
-        while True:
-            s.listen()
-            conn, addr = s.accept()
-            s.setblocking(False)
-            conn.send(bytes(self.data['profile']))
-            self.connections[addr] = conn
-            print(self.connections)
 
+        s.listen()
+        conn, addr = s.accept()
+        # TODO: test if client is in contacts
+        msg = conn.recv()
+        print(msg)  # tmp
 
-    def connect_by_ip(self, ip):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((ip, DEFAULT_PORT))
-        self.connections[ip] = s  # add socket connection to list
-        print("connected to", s)
-        s.send(self.data['profile'])
-
-    def connect_by_token(self, token):
-        self.connect_by_ip(self.connections[self.data['contacts'][token]['ip']])
+        s.close()
+        self.listen()
 
     def send(self, ip, text):
-        if ip not in self.connections:
-            print("connection doesn't exist :/")
-            return
-        else:
-            self.connections[ip].sendall(text)
-
-    def update(self):
-        for s in self.connections.values():
-            s.recv()
-
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((ip, DEFAULT_PORT))
+        s.sendall(text)
 
 class Profile(BaseModel):
 
