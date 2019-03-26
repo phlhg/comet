@@ -3,15 +3,18 @@ import os
 import socket
 import threading
 import random
+from datetime import datetime
 
+'''
+sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"rueblibuur"}, "text": "hello there", "utc":0}
+'''
 
 DEFAULT_PORT = 1516
 DATA_URI = "app/data.json"
 
-
 class BaseModel:
 
-    def __init__(self,controller):
+    def __init__(self, controller):
         self.controller = controller
 
 
@@ -22,30 +25,39 @@ class Client(BaseModel):
         self.ip = socket.gethostbyname(socket.gethostname())
         self.token = self.controller.Profile.getToken()
         self.data = self.controller.storage.data
+        self.contacts = self.controller.contacts
         threading.Thread(target=self.listen).start()
 
     def listen(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.ip, DEFAULT_PORT))
-        print("Running at:", socket.gethostbyname(socket.gethostname()))
+        print("listening at", self.ip)
 
         s.listen()
         conn, addr = s.accept()
-        # TODO: test if client is in contacts
-        msg = conn.recv()
-        print(msg)  # tmp
+        msg = dict(conn.recv())
 
+        token = msg['profile']['token']
+        ip = msg['profile']['ip']
+        username = msg['profile']['username']
+
+        contact = self.contacts.get(token)
+        if not contact:
+            contact = self.contacts.add(token, ip, username)
+
+        contact.receiveMessage(msg['text'], msg['utc'])
+
+        print("[log: received]", msg)  # tmp testing
         s.close()
-        self.listen()
+        self.listen()   # listen for next msg
 
-    def send_by_ip(self, ip, text):
+    def send(self, ip, text):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
-        s.sendall(text)
-
-    def send_by_token(self, token, text):
-        ip = self.data['contacts'][token]['ip']
-        self.send_by_ip(ip, text)
+        self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
+        msg = {'profile': self.data['profile'], 'text': text, 'utc': datetime.utcnow()}
+        s.sendall(bytes(str(msg)))
+        print("[log: sent]", msg)
 
 
 class Profile(BaseModel):
