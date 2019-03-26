@@ -38,10 +38,15 @@ class Client(BaseModel):
         s.close()
         self.listen()
 
-    def send(self, ip, text):
+    def send_by_ip(self, ip, text):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
         s.sendall(text)
+
+    def send_by_token(self, token, text):
+        ip = self.data['contacts'][token]['ip']
+        self.send_by_ip(ip, text)
+
 
 class Profile(BaseModel):
 
