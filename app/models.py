@@ -5,12 +5,15 @@ import threading
 import random
 from datetime import datetime
 
+'''
+sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"rueblibuur"}, "text": "hello there", "utc":0}
+'''
 
 DEFAULT_PORT = 1516
 DATA_URI = "app/data.json"
 
-
 class BaseModel:
+
     def __init__(self, core):
         self.core = core
 
@@ -19,45 +22,43 @@ class Client(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.connections = {}  # "ip": socket
         self.ip = socket.gethostbyname(socket.gethostname())
-        self.token = self.core.profile.getToken()
+        self.token = self.core.Profile.getToken()
         self.data = self.core.storage.data
+        self.contacts = self.core.contacts
+        
         threading.Thread(target=self.listen).start()
 
     def listen(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.ip, DEFAULT_PORT))
-        print("Running at:", socket.gethostbyname(socket.gethostname()))
-        while True:
-            s.listen()
-            conn, addr = s.accept()
-            s.setblocking(False)
-            conn.send(bytes(self.data['profile']))
-            self.connections[addr] = conn
-            print(self.connections)
+        print("listening at", self.ip)
 
+        s.listen()
+        conn, addr = s.accept()
+        msg = dict(conn.recv())
 
-    def connect_by_ip(self, ip):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((ip, DEFAULT_PORT))
-        self.connections[ip] = s  # add socket connection to list
-        print("connected to", s)
-        s.send(self.data['profile'])
+        token = msg['profile']['token']
+        ip = msg['profile']['ip']
+        username = msg['profile']['username']
 
-    def connect_by_token(self, token):
-        self.connect_by_ip(self.connections[self.data['contacts'][token]['ip']])
+        contact = self.contacts.get(token)
+        if not contact:
+            contact = self.contacts.add(token, ip, username)
+
+        contact.receiveMessage(msg['text'], msg['utc'])
+
+        print("[log: received]", msg)  # tmp testing
+        s.close()
+        self.listen()   # listen for next msg
 
     def send(self, ip, text):
-        if ip not in self.connections:
-            print("connection doesn't exist :/")
-            return
-        else:
-            self.connections[ip].sendall(text)
-
-    def update(self):
-        for s in self.connections.values():
-            s.recv()
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((ip, DEFAULT_PORT))
+        self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
+        msg = {'profile': self.data['profile'], 'text': text, 'utc': datetime.utcnow()}
+        s.sendall(bytes(str(msg)))
+        print("[log: sent]", msg)
 
 
 class Profile(BaseModel):
