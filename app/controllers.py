@@ -5,13 +5,7 @@ from .models import *
 class BaseController:
 
     def __init__(self, root):
-        BaseController.ViewManager = ViewManager(root, self)
-
-    def view(self, name):
-        return BaseController.ViewManager.show(name)
-
-    def getView(self,name):
-        return BaseController.ViewManager.get(name)
+        BaseController.view = ViewManager(self, root)
 
 
 class Core(BaseController):
@@ -22,4 +16,5 @@ class Core(BaseController):
         self.profile = Profile(self)
         self.contacts = ContactManager(self)
         self.client = Client(self)
-        self.view("Main")
+
+        BaseController.view.open()

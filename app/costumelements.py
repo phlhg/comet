@@ -8,7 +8,7 @@ class MenuButton(Button):
         self.defaultBackground = self["background"]
         self["activebackground"] = "#ddd"
         self['borderwidth'] = 0
-        self['font'] = font=("Segoe UI",12)
+        self['font'] = ("Segoe UI",12)
         self['anchor'] = "w"
         self['padx'] = 20
         self['pady'] = 10
