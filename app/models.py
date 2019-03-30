@@ -195,7 +195,7 @@ class Storage(BaseModel):
 
     def writeData(self):
         with open(DATA_URI, "w") as f:
-            f.write(json.dumps(self.data))
+            f.write(json.dumps(self.data, indent=4))
 
     def createData(self):
         self.data = {"profile": {"username": "Nutzername", "token": ""}, "contacts": {}}
