@@ -22,8 +22,8 @@ class Client(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.ip = socket.gethostbyname(socket.gethostname())
-        self.token = self.core.profile.getToken()
+        self.ip = self.core.profile.ip
+        self.token = self.core.profile.token
         self.data = self.core.storage.data
         self.contacts = self.core.contacts
         
@@ -67,7 +67,12 @@ class Profile(BaseModel):
         super().__init__(*args, **kwargs)
         self.username = self.core.storage.data["profile"]["username"]
         self.token = self.getToken()
+        self.ip = self.getIP()
 
+    def getIP(self):
+        self.core.storage.data["profile"]["ip"] = socket.gethostbyname(socket.gethostname())
+        self.core.storage.save()
+        return self.core.storage.data["profile"]["ip"]
 
     def getToken(self):
         if self.core.storage.data["profile"]["token"] == "":
@@ -100,7 +105,7 @@ class ContactManager:
 
     def add(self, token, ip, username):
         data = {"ip": ip, "username": username, "messages": []}
-        self.contacts.append(Contact(token, data))
+        self.contacts.append(Contact(self.core, token, data))
         return self.contacts[-1]
 
     def get(self, token):
@@ -134,16 +139,17 @@ class Contact:
         self.getMessages(data["messages"])
 
     def getMessages(self, data):
-        for message in data:
-            self.messages.append(Message(self.core, message))
+        #for i in range(20):
+            for message in data:
+                self.messages.append(Message(self.core, message))
 
     def receiveMessage(self, text, time):
         data = {"text": text, "self": False, "utc": time}
-        self.messages.append(Message(data))
+        self.messages.append(Message(self.core, data))
 
     def createMessage(self, text):
         data = {"text": text, "self": True, "utc": datetime.utcnow()}
-        self.messages.append(Message(data))
+        self.messages.append(Message(self.core, data))
         return self.messages[-1]
 
     def toArray(self):
@@ -169,12 +175,6 @@ class Message:
             "time": self.time,
         }
 
-    def toJSON(self):
-        return {
-            "profile": self.profile.t
-        }
-
-
 class Storage(BaseModel):
 
     def __init__(self, *args, **kwargs):
@@ -189,13 +189,14 @@ class Storage(BaseModel):
     def loadData(self):
         if not os.path.isfile(DATA_URI):
             self.createData()
-        with open(DATA_URI, "r") as f:
-            self.data = json.loads(f.read())
+        with open(DATA_URI, "rb") as f:
+            self.data = json.loads(f.read().decode("UTF-8"))
             self.dataLoaded = True
 
     def writeData(self):
-        with open(DATA_URI, "w") as f:
-            f.write(json.dumps(self.data, indent=4))
+        with open(DATA_URI, "wb") as f:
+            out = json.dumps(self.data, indent=4).encode("UTF-8")
+            f.write(out)
 
     def createData(self):
         self.data = {"profile": {"username": "Nutzername", "token": ""}, "contacts": {}}
