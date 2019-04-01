@@ -39,16 +39,20 @@ class Client(BaseModel):
         s.listen()
         conn, addr = s.accept()
         msg = str(conn.recv(), 'utf8')
+
         print("[log: msg in]", msg)  # debug log
+
         msg = json.loads(msg)
-
         command = msg['command']
-        if command == "searching":
-            self.send(msg['profile']['ip'], self.profile.toJSON(), command="found")
-        if command == "found":
-            self.contacts.
+        profile = msg['profile']
 
-        # contact.receiveMessage(msg['text'], msg['utc'])  # store msg in ContactManager
+        # command handling
+        if command == "searching":
+            self.send(profile['ip'], self.profile.toJSON(), command="found")    # send own profile with found cmd
+        elif command == "found":
+            self.contacts.addNearby(profile)
+        elif command == "none":
+            self.contacts.receiveMessage(msg)
 
         s.close()   # socket is closed on receiving end
         self.listen()   # listen for next msg
@@ -63,8 +67,6 @@ class Client(BaseModel):
 
     def search(self):
         pass  # contactManager.addNearby(profile)
-
-
 
 
 class Profile(BaseModel):
@@ -113,13 +115,13 @@ class ContactManager:
         for token, contactData in data.items():
             self.contacts.append(Contact(self.core, token, contactData))
 
-    def addNearBy(self, profile):
+    def addNearby(self, profile):
         found = [c for c in self.nearby if c.token == profile["token"]]
         if len(found) > 0:
             return
         self.nearby.append(Contact(self,profile["token"],profile))
 
-    def addFromNearBy(self, token):
+    def addFromNearby(self, token):
         found = [c for c in self.nearby if c.token == token][0]
         if not found:
             return False
