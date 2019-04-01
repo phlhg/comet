@@ -65,9 +65,18 @@ class Profile(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.username = self.core.storage.data["profile"]["username"]
+        self.username = self.getUsername()
         self.token = self.getToken()
         self.ip = self.getIP()
+
+    def getUsername(self,):
+        if self.core.storage.data["profile"]["username"] == "":
+            self.setUsername("Anonymous")
+        return self.core.storage.data["profile"]["username"]
+
+    def setUsername(self,name):
+        self.core.storage.data["profile"]["username"] = name
+        self.core.storage.save()
 
     def getIP(self):
         self.core.storage.data["profile"]["ip"] = socket.gethostbyname(socket.gethostname())
@@ -109,6 +118,7 @@ class ContactManager:
         if len(found) > 0:
             return
         self.nearby.append(Contact(self,profile["token"],profile))
+        self.core.view.switch.get("SearchView").sider.nearbyList.update()
 
     def addFromNearBy(self, token):
         found = [c for c in self.nearby if c.token == token][0]
@@ -116,9 +126,12 @@ class ContactManager:
             return False
         self.contacts.append(found)
         del found
+        self.core.view.switch.get("MainView").sider.contactList.update()
+        self.core.view.switch.get("SearchView").sider.nearbyList.update()
 
     def add(self, data):
         self.contacts.append(Contact(self.core, data["token"], data))
+        self.core.view.switch.get("MainView").sider.contactList.update()
         return self.contacts[-1]
 
     def get(self, token):

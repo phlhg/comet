@@ -101,7 +101,7 @@ class MainView(BaseView):
     def create(self):
         self.sider = Sider(self.core, self.root)
         self.sider.navBack = NavigationBack("", "", self.core, self.sider.frame)
-        self.sider.contactList = ContactList(self.core.contacts.contacts, self.core, self.sider.frame)
+        self.sider.contactList = ContactList(self.core, self.sider.frame)
 
         self.content = Content(self.core, self.root)
         self.content.title = ContentTitle("Chat", self.core, self.content.frame)
@@ -136,7 +136,8 @@ class SearchView(BaseView):
     def create(self):
         self.sider = Sider(self.core, self.root)
         self.sider.navBack = NavigationBack("Chats", "MainView", self.core, self.sider.frame)
-        self.sider.contactList = ContactList([], self.core, self.sider.frame)
+        self.sider.nearbyList = NearbyList(self.core, self.sider.frame)
+
         ctn = MenuButton(self.sider.frame, fg="#999", text="    Suchen ...", command=lambda controller=self.core: controller.view.show("SearchView"))
         ctn.pack(fill=X)
 
@@ -378,30 +379,83 @@ class ContentTitle(BaseElement):
         self.frame.config(text=text)
 
 
-class ContactList(BaseElement):
+class MenuList(BaseElement):
 
-    def __init__(self, contacts, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
+        self.list = []
         self.frame = Frame(self.root, bg="#eee")
         self.frame.place(relx=0, rely=0, relw=1)
-        self.list = []
 
+    def clear(self):
+        for e in self.list:
+            e.frame.destroy()
+            del e
+
+
+class MenuElement(HoverButton):
+
+    def __init__(self, text="", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.text = text
+        self.frame.config(text=self.text)
+        self.frame.pack(fill=X)
+        self.frame.bind("<Button-1>",self.onclick)
+
+    def onclick(self,e):
+        print("")
+
+
+class ContactList(MenuList):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.update()
+
+    def update(self):
+        self.clear()
         for contact in self.core.contacts.contacts:
             self.list.append(ContactListElement(contact, self.core, self.root))
 
 
-class ContactListElement(HoverButton):
+class ContactListElement(MenuElement):
 
     def __init__(self, contact, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__("", *args, **kwargs)
         self.contact = contact
         self.frame.config(text="▢ "+contact.username)
         self.frame.pack(fill=X)
-        self.frame.bind("<Button-1>",self.click)
+        self.frame.bind("<Button-1>",self.onclick)
 
-    def click(self,e):
+    def onclick(self,e):
         self.core.view.switch.get("MainView").content.chat.load(self.contact.token)
+
+
+class NearbyList(MenuList):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.update()
+
+    def update(self):
+        self.clear()
+        for contact in self.core.contacts.nearby:
+            self.list.append(NearbyListElement(contact, self.core, self.root))
+
+
+class NearbyListElement(MenuElement):
+
+    def __init__(self, contact, *args, **kwargs):
+        super().__init__("", *args, **kwargs)
+        self.contact = contact
+        self.frame.config(text="▢ "+contact.username)
+        self.frame.pack(fill=X)
+        self.frame.bind("<Button-1>",self.onclick)
+
+    def onclick(self,e):
+        self.core.contacts.addFromNearBy(self.contact.token)
+        self.core.view.switch.get("MainView").content.chat.load(self.contact.token)
+        self.core.view.swicth.show("MainView")
 
 
 class Chat(BaseElement):
@@ -429,6 +483,7 @@ class Chat(BaseElement):
         if self.active.token == token:
             self.window.addMessage(message)
             self.window.showNew()
+        self.window.showNew()
 
 
 class ChatWindow(BaseElement):
