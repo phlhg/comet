@@ -1,5 +1,6 @@
 import json
 import os
+import math
 import socket
 import threading
 import random
@@ -238,6 +239,7 @@ class Storage(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.raw = ""
         self.dataLoaded = False
         self.data = {}
         self.loadData()
@@ -249,15 +251,33 @@ class Storage(BaseModel):
         if not os.path.isfile(DATA_URI):
             self.createData()
         with open(DATA_URI, "rb") as f:
-            self.data = json.loads(f.read().decode("UTF-8"))
+            self.raw = f.read().decode("UTF-8")
+            self.data = json.loads(self.raw)
             self.dataLoaded = True
 
     def writeData(self):
         with open(DATA_URI, "wb") as f:
-            out = json.dumps(self.data, indent=4).encode("UTF-8")
-            f.write(out)
+            self.raw = json.dumps(self.data, indent=4)
+            f.write(self.raw.encode("UTF-8"))
 
     def createData(self):
         self.data = {"profile": {"username": "Nutzername", "token": ""}, "contacts": {}}
         self.writeData()
+
+    def getSize(self):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk("."):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
+        return total_size
+
+    def getSizeReadable(self):
+        units = ["Bytes","KB","MB","GB","TB"]
+        countBytes = self.getSize()
+        if countBytes == 0:
+            return '0 Byte'
+        i = int(math.floor(math.log(countBytes) / math.log(1024)))
+        return str(round(countBytes / math.pow(1024, i), 0)) + ' ' + units[i]
+
 

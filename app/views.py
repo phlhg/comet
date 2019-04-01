@@ -103,14 +103,12 @@ class MainView(BaseView):
         self.sider = Sider(self.core, self.root)
         self.sider.navBack = NavigationBack("", "", self.core, self.sider.frame)
         self.sider.contactList = ContactList(self.core, self.sider.frame)
+        self.sider.addnearby = MenuElement("", self.core, self.sider.frame)
+        self.sider.addnearby.frame.config(fg="#999", text="+ Freunde finden", command=lambda controller=self.core: controller.view.show("SearchView"))
 
         self.content = Content(self.core, self.root)
         self.content.title = ContentTitle("Chat", self.core, self.content.frame)
         self.content.chat = Chat(self.content.title, self.core,self.content.frame)
-
-        #INPUT
-        ctn = MenuElement("", self.core, self.sider.frame)
-        ctn.frame.config(fg="#999", text="+ Freunde finden", command=lambda controller=self.core: controller.view.show("SearchView"))
 
 
 class SettingsView(BaseView):
@@ -124,7 +122,27 @@ class SettingsView(BaseView):
         self.sider.navBack = NavigationBack("Chats", "MainView", self.core, self.sider.frame)
 
         self.content = Content(self.core, self.root)
-        self.content.title = ContentTitle("Einstellungen", self.core, self.content.frame)
+        self.content.title = ContentTitle("Profil", self.core, self.content.frame)
+
+        self.content.entry_username = SettingInput(self.core, self.content.frame)
+        self.content.entry_username.setLabel("Nutzername")
+        self.content.entry_username.setValue(self.core.profile.username)
+        self.content.entry_username.onchange = self.core.profile.setUsername
+        
+        self.content.entry_token = SettingInput(self.core, self.content.frame)
+        self.content.entry_token.setLabel("Identifizierungs-Schlüssel")
+        self.content.entry_token.setValue(self.core.profile.token)
+        self.content.entry_token.entry.configure(state='readonly')
+
+        self.content.entry_ip = SettingInput(self.core, self.content.frame)
+        self.content.entry_ip.setLabel("IPV4-Adresse")
+        self.content.entry_ip.setValue(self.core.profile.ip)
+        self.content.entry_ip.entry.configure(state='readonly')
+
+        self.content.entry_storage = SettingInput(self.core, self.content.frame)
+        self.content.entry_storage.setLabel("Benötigter Speicherplatz")
+        self.content.entry_storage.setValue(self.core.storage.getSizeReadable())
+        self.content.entry_storage.entry.configure(state='readonly')
 
 
 class SearchView(BaseView):
@@ -137,10 +155,9 @@ class SearchView(BaseView):
         self.sider = Sider(self.core, self.root)
         self.sider.navBack = NavigationBack("Chats", "MainView", self.core, self.sider.frame)
         self.sider.nearbyList = NearbyList(self.core, self.sider.frame)
-
-        ctn = MenuElement("", self.core, self.sider.frame)
-        ctn.frame.config(fg="#999", text="    Suchen ...")
-        ctn.setColor("#eee","#eee")
+        self.sider.searching = MenuElement("", self.core, self.sider.frame)
+        self.sider.searching.frame.config(fg="#999", text="    Suchen ...")
+        self.sider.searching.setColor("#eee","#eee")
 
         self.content = Content(self.core, self.root)
         self.content.title = ContentTitle("Freunde finden", self.core, self.content.frame)
@@ -350,7 +367,9 @@ class ContentTitle(BaseElement):
         super().__init__(*args, **kwargs)
 
         self.title = title
+        self.placeholder = Label(self.root, text=self.title, bg="#fff", fg="#000", anchor="w", pady=15, padx=20, font=("Segoe UI",24,"bold"))
         self.frame = Label(self.root, text=self.title, bg="#fff", fg="#000", anchor="w", pady=15, padx=20, font=("Segoe UI",24,"bold"))
+        self.placeholder.pack(fill=X)
         self.frame.place(relx=0, rely=0, relw=1)
         self.logo = ContentLogo(self.core, self.root)
 
@@ -382,7 +401,7 @@ class MenuElement(HoverButton):
         self.frame.bind("<Button-1>",self.onclick)
 
     def onclick(self,e):
-        print("")
+        pass
 
 
 class ContactList(MenuList):
@@ -547,6 +566,36 @@ class InputButton(BaseElement):
 
     def leave(self,e):
         self.frame.config(image=self.img)
+
+
+class SettingInput(BaseElement):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.frame = Frame(self.root, padx=20, pady=10, bg="#fff")
+        self.frame.pack(fill=X)
+
+        self.label = Label(self.frame, fg="#999", padx=8, pady=2, text="LABEL", anchor="w", font=("Segoe UI",8))
+        self.label.pack(fill=X)
+
+        self.entry = Entry(self.frame, bg="#eee", fg="#111", borderwidth=10, relief=FLAT, font=("Segoe UI",12))
+        self.entry.bind("<KeyRelease>",self.validate)
+        self.entry.pack(fill=X)
+
+    def setLabel(self,value):
+        self.label.config(text=value)
+
+    def setValue(self,value):
+        self.entry.delete(0,END)
+        self.entry.insert(0,value)
+
+    def validate(self,e):
+        self.onchange(self.entry.get())
+
+    def onchange(self,value):
+        pass
+
 
 
 # by https://gist.github.com/bakineugene/76c8f9bcec5b390e45df
