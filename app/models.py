@@ -97,15 +97,28 @@ class ContactManager:
     def __init__(self, core):
         self.core = core
         self.contacts = []
+        self.nearby = []
         self.getContacts(self.core.storage.data["contacts"])
 
     def getContacts(self, data):
         for token, contactData in data.items():
             self.contacts.append(Contact(self.core, token, contactData))
 
-    def add(self, token, ip, username):
-        data = {"ip": ip, "username": username, "messages": []}
-        self.contacts.append(Contact(self.core, token, data))
+    def addNearBy(self, profile):
+        found = [c for c in self.nearby if c.token == profile["token"]]
+        if len(found) > 0:
+            return
+        self.nearby.append(Contact(self,profile["token"],profile))
+
+    def addFromNearBy(self, token):
+        found = [c for c in self.nearby if c.token == token][0]
+        if not found:
+            return False
+        self.contacts.append(found)
+        del found
+
+    def add(self, data):
+        self.contacts.append(Contact(self.core, data["token"], data))
         return self.contacts[-1]
 
     def get(self, token):
@@ -121,7 +134,16 @@ class ContactManager:
         return contact[0]
 
     def toArray(self):
-        return [c.toArray() for c in self.contacts]
+        allContacts = {} 
+        for contact in self.contacts:
+            allContacts[contact.token] = contact.toArray()
+        return allContacts
+
+    def receiveMessage(self,data):
+        contact = self.get(data["profile"]["token"])
+        if not contact:
+            contact = self.add(data["profile"])
+        return contact.receiveMessage(data)
 
     def save(self):
         self.core.storage.data["contacts"] = self.toArray()
@@ -139,17 +161,24 @@ class Contact:
         self.getMessages(data["messages"])
 
     def getMessages(self, data):
-        #for i in range(20):
-            for message in data:
-                self.messages.append(Message(self.core, message))
+        for message in data:
+            self.messages.append(Message(self.core, message))
 
-    def receiveMessage(self, text, time):
-        data = {"text": text, "self": False, "utc": time}
-        self.messages.append(Message(self.core, data))
+    def update(self,profile):
+        self.username = profile["username"]
+        self.ip = profile["ip"] #RISKY
+
+    def receiveMessage(self, data):
+        msg = {"text": data["text"], "self": False, "utc": data["utc"]}
+        self.messages.append(Message(self.core, msg))
+        self.core.view.switch.get("MainView").content.chat.receiveMessage(self.token, self.messages[-1])
+        self.core.contacts.save()
+        return True
 
     def createMessage(self, text):
         data = {"text": text, "self": True, "utc": datetime.utcnow()}
         self.messages.append(Message(self.core, data))
+        self.core.contacts.save()
         return self.messages[-1]
 
     def toArray(self):
@@ -172,7 +201,7 @@ class Message:
         return {
             "text": self.text,
             "self": self.self,
-            "time": self.time,
+            "utc": self.time,
         }
 
 class Storage(BaseModel):
