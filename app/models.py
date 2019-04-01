@@ -12,6 +12,7 @@ sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"ruebl
 DEFAULT_PORT = 1516
 DATA_URI = "app/data.json"
 
+
 class BaseModel:
 
     def __init__(self, core):
@@ -27,7 +28,7 @@ class Client(BaseModel):
         self.data = self.core.storage.data
         self.contacts = self.core.contacts
         
-        threading.Thread(target=self.listen).start()
+        self.listeningThread = threading.Thread(target=self.listen).start()  # open for connection
 
     def listen(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -36,7 +37,7 @@ class Client(BaseModel):
 
         s.listen()
         conn, addr = s.accept()
-        msg = dict(str(conn.recv()))
+        msg = json.loads(str(conn.recv(), 'utf8'))
 
         token = msg['profile']['token']
         ip = msg['profile']['ip']
