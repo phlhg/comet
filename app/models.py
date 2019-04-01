@@ -31,24 +31,24 @@ class Client(BaseModel):
     def listen(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.ip, DEFAULT_PORT))
-        print("listening at", self.ip)
+        print("[log: listening at]", self.ip)
 
         s.listen()
         conn, addr = s.accept()
-        msg = dict(conn.recv())
+        msg = dict(str(conn.recv()))
 
         token = msg['profile']['token']
         ip = msg['profile']['ip']
         username = msg['profile']['username']
 
-        contact = self.contacts.get(token)
+        contact = self.contacts.get(token)  # get contact or add new if not existent
         if not contact:
             contact = self.contacts.add(token, ip, username)
 
-        contact.receiveMessage(msg['text'], msg['utc'])
+        contact.receiveMessage(msg['text'], msg['utc'])  # store msg in ContactManager
 
         print("[log: received]", msg)  # tmp testing
-        s.close()
+        s.close()   # socket is closed on receiving end
         self.listen()   # listen for next msg
 
     def send(self, ip, text):
