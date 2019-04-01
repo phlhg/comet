@@ -58,6 +58,7 @@ class Client(BaseModel):
         self.listen()   # listen for next msg
 
     def send(self, ip, text="", command="none"):
+        print("SEND CALLED")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
         self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
