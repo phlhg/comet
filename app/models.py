@@ -29,7 +29,9 @@ class Client(BaseModel):
         self.data = self.core.storage.data
         self.contacts = self.core.contacts
         
-        self.listeningThread = threading.Thread(target=self.listen).start()  # open for connection
+        #PH: Needed to change this in order to quit the thread.
+        self.listeningThread = threading.Thread(target=self.listen)
+        self.listeningThread.start()  # open for connection
 
     def listen(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -148,13 +150,13 @@ class ContactManager:
 
     def get(self, token):
         contact = [c for c in self.contacts if c.token == token]
-        if not contact[0]:
+        if len(contact) < 1:
             return False
         return contact[0]
 
     def getByIP(self, ip):
         contact = [c for c in self.contacts if c.ip == ip]
-        if not contact[0]:
+        if len(contact) < 1:
             return False
         return contact[0]
 
@@ -205,6 +207,9 @@ class Contact:
         self.messages.append(Message(self.core, data))
         self.core.contacts.save()
         return self.messages[-1]
+
+    def sendMessage(self,text):
+        self.core.client.send(self.ip, text)
 
     def toArray(self):
         return {
