@@ -6,11 +6,13 @@ import random
 from datetime import datetime
 
 '''
-sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"rueblibuur"}, "text": "hello there", "utc":0}
+sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"rueblibuur"}, "text": "hello there", "utc":0, "command":"searching/found/none"}
 '''
+
 
 DEFAULT_PORT = 1516
 DATA_URI = "app/data.json"
+
 
 class BaseModel:
 
@@ -23,42 +25,48 @@ class Client(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ip = self.core.profile.ip
-        self.token = self.core.profile.token
+        self.profile = self.core.profile
         self.data = self.core.storage.data
         self.contacts = self.core.contacts
         
-        threading.Thread(target=self.listen).start()
+        self.listeningThread = threading.Thread(target=self.listen).start()  # open for connection
 
     def listen(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.ip, DEFAULT_PORT))
-        print("listening at", self.ip)
+        print("[log: listening at]", self.ip)
 
         s.listen()
         conn, addr = s.accept()
-        msg = dict(conn.recv())
+        msg = str(conn.recv(), 'utf8')
 
-        token = msg['profile']['token']
-        ip = msg['profile']['ip']
-        username = msg['profile']['username']
+        print("[log: msg in]", msg)  # debug log
 
-        contact = self.contacts.get(token)
-        if not contact:
-            contact = self.contacts.add(token, ip, username)
+        msg = json.loads(msg)
+        command = msg['command']
+        profile = msg['profile']
 
-        contact.receiveMessage(msg['text'], msg['utc'])
+        # command handling
+        if command == "searching":
+            self.send(profile['ip'], self.profile.toJSON(), command="found")    # send own profile with found cmd
+        elif command == "found":
+            self.contacts.addNearby(profile)
+        elif command == "none":
+            self.contacts.receiveMessage(msg)
 
-        print("[log: received]", msg)  # tmp testing
-        s.close()
+        s.close()   # socket is closed on receiving end
         self.listen()   # listen for next msg
 
-    def send(self, ip, text):
+    def send(self, ip, text="", command="none"):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
         self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
-        msg = {'profile': self.data['profile'], 'text': text, 'utc': datetime.utcnow()}
-        s.sendall(bytes(str(msg)))
+        msg = {'profile': self.data['profile'], 'text': text, 'utc': datetime.utcnow(), 'command':command}
+        s.sendall(bytes(str(msg), 'utf8'))
         print("[log: sent]", msg)
+
+    def search(self):
+        pass  # contactManager.addNearby(profile)
 
 
 class Profile(BaseModel):
@@ -89,7 +97,6 @@ class Profile(BaseModel):
             self.core.storage.save()
         return self.core.storage.data["profile"]["token"]
 
-
     def generateToken(self,l=5):
         chars = 'abcdefghijklmnopqrstuvwxyz'.upper()
         digits = '0123456789'
@@ -99,6 +106,10 @@ class Profile(BaseModel):
         for i in range(0, l):
             token += all[random.randint(0, allLenght-1)]
         return token
+
+    def toJSON(self):
+        json = {"username": self.username, "token":self.token, "ip":self.ip}
+        return json
 
 
 class ContactManager:
@@ -113,14 +124,14 @@ class ContactManager:
         for token, contactData in data.items():
             self.contacts.append(Contact(self.core, token, contactData))
 
-    def addNearBy(self, profile):
+    def addNearby(self, profile):
         found = [c for c in self.nearby if c.token == profile["token"]]
         if len(found) > 0:
             return
         self.nearby.append(Contact(self,profile["token"],profile))
         self.core.view.switch.get("SearchView").sider.nearbyList.update()
 
-    def addFromNearBy(self, token):
+    def addFromNearby(self, token):
         found = [c for c in self.nearby if c.token == token][0]
         if not found:
             return False
