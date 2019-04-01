@@ -42,6 +42,7 @@ class ViewManager:
         self.root.overrideredirect(True)
     
     def normalize(self):
+        self.root.attributes("-alpha",0.0)
         self.top.iconify()
         self.root.overrideredirect(False)
         self.root.deiconify()
@@ -108,9 +109,8 @@ class MainView(BaseView):
         self.content.chat = Chat(self.content.title, self.core,self.content.frame)
 
         #INPUT
-
-        ctn = MenuButton(self.sider.frame, fg="#999", text="+ Freunde finden", command=lambda controller=self.core: controller.view.show("SearchView"))
-        ctn.pack(fill=X)
+        ctn = MenuElement("", self.core, self.sider.frame)
+        ctn.frame.config(fg="#999", text="+ Freunde finden", command=lambda controller=self.core: controller.view.show("SearchView"))
 
 
 class SettingsView(BaseView):
@@ -138,8 +138,9 @@ class SearchView(BaseView):
         self.sider.navBack = NavigationBack("Chats", "MainView", self.core, self.sider.frame)
         self.sider.nearbyList = NearbyList(self.core, self.sider.frame)
 
-        ctn = MenuButton(self.sider.frame, fg="#999", text="    Suchen ...", command=lambda controller=self.core: controller.view.show("SearchView"))
-        ctn.pack(fill=X)
+        ctn = MenuElement("", self.core, self.sider.frame)
+        ctn.frame.config(fg="#999", text="    Suchen ...")
+        ctn.setColor("#eee","#eee")
 
         self.content = Content(self.core, self.root)
         self.content.title = ContentTitle("Freunde finden", self.core, self.content.frame)
@@ -320,28 +321,6 @@ class NavigationSettings(HoverButton):
         self.core.view.show("SettingsView")
 
 
-class MenuButton(Button):
-
-    def __init__(self, master, **kw):
-        Button.__init__(self, master=master, **kw)
-        self["background"] = "#eee"
-        self.defaultBackground = self["background"]
-        self["activebackground"] = "#ddd"
-        self['borderwidth'] = 0
-        self['font'] = ("Segoe UI",12)
-        self['anchor'] = "w"
-        self['padx'] = 20
-        self['pady'] = 10
-        self.bind("<Enter>", self.on_enter)
-        self.bind("<Leave>", self.on_leave)
-
-    def on_enter(self, e):
-        self['background'] = self['activebackground']
-
-    def on_leave(self, e):
-        self['background'] = self.defaultBackground
-
-
 class Content(BaseElement):
 
     def __init__(self, *args, **kwargs):
@@ -469,10 +448,10 @@ class Chat(BaseElement):
         self.window = ChatWindow(self,self.core,self.frame)
         self.input = Input(self.core,self.frame)
         self.input.onsend = lambda val: self.send(val)
-        self.load("000000")
+        self.load(self.core.contacts.contacts[0].token)
     
     def send(self, value):
-        self.core.client.send(self.active.ip, value)
+        self.active.sendMessage(value)
 
     def load(self, token):
         self.active = self.core.contacts.get(token)
