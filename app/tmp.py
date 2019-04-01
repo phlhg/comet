@@ -1,8 +1,9 @@
 import json
 
-d = b'"key": "value"'
-s = "hello"
-b = bytes(s, 'utf8')
-s2 = str(b, 'utf8')
+d = {"key": "value"}
+s = str(d)
+print(s)
+b = bytes(d, 'utf8')
+s2 = str(b)
 
 print(s2)

@@ -6,8 +6,9 @@ import random
 from datetime import datetime
 
 '''
-sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"rueblibuur"}, "text": "hello there", "utc":0}
+sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"rueblibuur"}, "text": "hello there", "utc":0, "command":"searching/found/none"}
 '''
+
 
 DEFAULT_PORT = 1516
 DATA_URI = "app/data.json"
@@ -24,7 +25,7 @@ class Client(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ip = self.core.profile.ip
-        self.token = self.core.profile.token
+        self.profile = self.core.profile
         self.data = self.core.storage.data
         self.contacts = self.core.contacts
         
@@ -37,29 +38,33 @@ class Client(BaseModel):
 
         s.listen()
         conn, addr = s.accept()
-        msg = json.loads(str(conn.recv(), 'utf8'))
+        msg = str(conn.recv(), 'utf8')
+        print("[log: msg in]", msg)  # debug log
+        msg = json.loads(msg)
 
-        token = msg['profile']['token']
-        ip = msg['profile']['ip']
-        username = msg['profile']['username']
+        command = msg['command']
+        if command == "searching":
+            self.send(msg['profile']['ip'], self.profile.toJSON(), command="found")
+        if command == "found":
+            self.contacts.
 
-        contact = self.contacts.get(token)  # get contact or add new if not existent
-        if not contact:
-            contact = self.contacts.add(token, ip, username)
+        # contact.receiveMessage(msg['text'], msg['utc'])  # store msg in ContactManager
 
-        contact.receiveMessage(msg['text'], msg['utc'])  # store msg in ContactManager
-
-        print("[log: received]", msg)  # tmp testing
         s.close()   # socket is closed on receiving end
         self.listen()   # listen for next msg
 
-    def send(self, ip, text):
+    def send(self, ip, text="", command="none"):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
         self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
-        msg = {'profile': self.data['profile'], 'text': text, 'utc': datetime.utcnow()}
-        s.sendall(bytes(str(msg)))
+        msg = {'profile': self.data['profile'], 'text': text, 'utc': datetime.utcnow(), 'command':command}
+        s.sendall(bytes(str(msg), 'utf8'))
         print("[log: sent]", msg)
+
+    def search(self):
+        pass  # contactManager.addNearby(profile)
+
+
 
 
 class Profile(BaseModel):
@@ -81,7 +86,6 @@ class Profile(BaseModel):
             self.core.storage.save()
         return self.core.storage.data["profile"]["token"]
 
-
     def generateToken(self,l=5):
         chars = 'abcdefghijklmnopqrstuvwxyz'.upper()
         digits = '0123456789'
@@ -91,6 +95,10 @@ class Profile(BaseModel):
         for i in range(0, l):
             token += all[random.randint(0, allLenght-1)]
         return token
+
+    def toJSON(self):
+        json = {"username": self.username, "token":self.token, "ip":self.ip}
+        return json
 
 
 class ContactManager:
