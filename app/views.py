@@ -425,6 +425,11 @@ class Chat(BaseElement):
             self.window.addMessage(message)
         self.window.showNew()
 
+    def receiveMessage(self,token,message):
+        if self.active.token == token:
+            self.window.addMessage(message)
+            self.window.showNew()
+
 
 class ChatWindow(BaseElement):
 
