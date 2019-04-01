@@ -1,27 +1,26 @@
 {
-  "profile": {
-    "username": "",
-    "token": "",
-    "ip": ""
-  },
-  "settings": {
-  },
-  "contacts": {
-    "000000": {
-      "ip": "1.1.1.1",
-      "username": "test",
-      "messages": [
-        {
-          "text": "blabalaasda",
-          "self": false,
-          "utc": 0
-        },
-        {
-          "text": "another msg",
-          "self": true,
-          "utc": 1
+    "profile": {
+        "username": "Anonymous",
+        "token": "",
+        "ip": ""
+    },
+    "settings": {},
+    "contacts": {
+        "000000": {
+            "ip": "1.1.1.1",
+            "username": "World",
+            "messages": [
+                {
+                    "text": "Hello World!",
+                    "self": true,
+                    "utc": 0
+                },
+                {
+                    "text": "Hello There!",
+                    "self": false,
+                    "utc": 1
+                }
+            ]
         }
-      ]
     }
-  }
 }
