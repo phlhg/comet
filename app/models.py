@@ -38,6 +38,7 @@ class Client(BaseModel):
 
         s.listen()
         conn, addr = s.accept()
+        print("recv connection")
         msg = str(conn.recv(), 'utf8')
 
         print("[log: msg in]", msg)  # debug log
