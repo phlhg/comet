@@ -466,10 +466,13 @@ class Chat(BaseElement):
         self.title = title
         self.frame = Frame(self.root, bg="#fff")
         self.frame.place(relx=0, rely=1, relh=0.892, relw=1, anchor=SW)
-        
         self.window = ChatWindow(self,self.core,self.frame)
         self.input = Input(self.core,self.frame)
+        self.input.onsend = lambda val: self.send(val)
         self.load("000000")
+    
+    def send(self, value):
+        self.core.client.send(self.active.ip, value)
 
     def load(self, token):
         self.active = self.core.contacts.get(token)
