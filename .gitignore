@@ -107,3 +107,4 @@ venv.bak/
 
 #########
 /.vscode
+/app/data.json

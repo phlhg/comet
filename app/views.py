@@ -467,7 +467,8 @@ class Chat(BaseElement):
         self.window = ChatWindow(self,self.core,self.frame)
         self.input = Input(self.core,self.frame)
         self.input.onsend = lambda val: self.send(val)
-        self.load(self.core.contacts.contacts[0].token)
+        if len(self.core.contacts.contacts) > 0:
+            self.load(self.core.contacts.contacts[0].token)
     
     def send(self, value):
         self.active.sendMessage(value)
