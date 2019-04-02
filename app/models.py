@@ -4,8 +4,7 @@ import math
 import socket
 import threading
 import random
-from datetime import datetime
-
+import time
 '''
 sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"rueblibuur"}, "text": "hello there", "utc":0, "command":"searching/found/none"}
 '''
@@ -42,7 +41,7 @@ class Client(BaseModel):
         s.listen()
         conn, addr = s.accept()
         print("[log] received connection")
-        msg = str(conn.recv(), 'utf8')
+        msg = str(conn.recv(4096), 'utf8')
 
         print("[log, msg in]", msg)  # debug log
 
@@ -66,7 +65,7 @@ class Client(BaseModel):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
         self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
-        msg = {'profile': self.data['profile'], 'text': text, 'utc': datetime.utcnow(), 'command':command}
+        msg = {'profile': self.data['profile'], 'text': text, 'utc': round(time.time()), 'command':command}
         s.sendall(bytes(str(msg), 'utf8'))
         print("[log] sent:", msg)
 
@@ -205,7 +204,7 @@ class Contact:
         return True
 
     def createMessage(self, text):
-        data = {"text": text, "self": True, "utc": datetime.utcnow()}
+        data = {"text": text, "self": True, "utc": round(time.time())}
         self.messages.append(Message(self.core, data))
         self.core.contacts.save()
         return self.messages[-1]

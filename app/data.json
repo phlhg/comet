@@ -7,8 +7,8 @@
     "settings": {},
     "contacts": {
         "000000": {
-            "ip": "1.1.1.1",
-            "username": "World",
+            "ip": "172.16.0.192",
+            "username": "localhost",
             "messages": [
                 {
                     "text": "Hello World!",
