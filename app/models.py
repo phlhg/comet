@@ -61,7 +61,7 @@ class Client(BaseModel):
         self.listen()   # listen for next msg
 
     def send(self, ip, text="", command="none"):
-        print("[log] building connection to {} : {}...".format(ip, DEFAULT_PORT, text))
+        print("[log] building connection to {} : {}...".format(ip, DEFAULT_PORT))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
         self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
@@ -145,7 +145,8 @@ class ContactManager:
         self.core.view.switch.get("SearchView").sider.nearbyList.update()
 
     def add(self, data):
-        self.contacts.append(Contact(self.core, data["token"], data))
+        c = {"username": data["username"], "ip": data["ip"], "messages": []}
+        self.contacts.append(Contact(self.core, data["token"], c))
         self.core.view.switch.get("MainView").sider.contactList.update()
         return self.contacts[-1]
 
