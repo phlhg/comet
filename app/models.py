@@ -37,13 +37,14 @@ class Client(BaseModel):
     def listen(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.ip, DEFAULT_PORT))
-        print("[log: listening at]", self.ip)
+        print("[log] listening at", self.ip, DEFAULT_PORT)
 
         s.listen()
         conn, addr = s.accept()
+        print("[log] received connection")
         msg = str(conn.recv(), 'utf8')
 
-        print("[log: msg in]", msg)  # debug log
+        print("[log, msg in]", msg)  # debug log
 
         msg = json.loads(msg)
         command = msg['command']
@@ -61,13 +62,13 @@ class Client(BaseModel):
         self.listen()   # listen for next msg
 
     def send(self, ip, text="", command="none"):
-        print("SEND CALLED")
+        print("[log] building connection to {} : {}...".format(ip, DEFAULT_PORT, text))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
         self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
         msg = {'profile': self.data['profile'], 'text': text, 'utc': datetime.utcnow(), 'command':command}
         s.sendall(bytes(str(msg), 'utf8'))
-        print("[log: sent]", msg)
+        print("[log] sent:", msg)
 
     def search(self):
         pass  # contactManager.addNearby(profile)
