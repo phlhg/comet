@@ -1,6 +1,9 @@
-import time
+import json
 
-print(((time.time())))
+s='{"key": "value"}'
+
+j = json.loads(s)
+print(j)
 
 # import socket
 # import time
