@@ -552,8 +552,6 @@ class Chat(BaseElement):
         for msg in self.active.messages:
             if not any(element.message == msg for element in self.window.messages):
                 self.window.addMessage(msg)
-
-        print("___")
         
 
 class ChatWindow(BaseElement):

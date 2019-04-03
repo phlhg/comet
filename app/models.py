@@ -66,7 +66,7 @@ class Client(BaseModel):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
         self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
-        msg = {"profile": self.data["profile"], "text": text, "utc": round(time.time()), "command":command}
+        msg = {"profile": self.profile.toJSON(), "text": text, "utc": round(time.time()), "command":command}
         s.sendall(bytes(str(msg), 'utf8'))
         print("[log] sent:", msg)
 
