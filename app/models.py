@@ -88,6 +88,7 @@ class Profile(BaseModel):
         return self.core.storage.data["profile"]["username"]
 
     def setUsername(self,name):
+        self.username = name
         self.core.storage.data["profile"]["username"] = name
         self.core.storage.save()
 
@@ -134,7 +135,7 @@ class ContactManager:
         if len(found) > 0:
             return
         self.nearby.append(Contact(self,profile["token"],profile))
-        self.core.view.switch.get("SearchView").sider.nearbyList.update()
+        self.core.view.update()
 
     def addFromNearby(self, token):
         found = [c for c in self.nearby if c.token == token][0]
@@ -142,13 +143,12 @@ class ContactManager:
             return False
         self.contacts.append(found)
         del found
-        self.core.view.switch.get("MainView").sider.contactList.update()
-        self.core.view.switch.get("SearchView").sider.nearbyList.update()
+        self.save()
 
     def add(self, data):
         c = {"username": data["username"], "ip": data["ip"], "messages": []}
         self.contacts.append(Contact(self.core, data["token"], c))
-        self.core.view.switch.get("MainView").sider.contactList.update()
+        self.save()
         return self.contacts[-1]
 
     def get(self, token):
@@ -197,11 +197,12 @@ class Contact:
     def update(self,profile):
         self.username = profile["username"]
         self.ip = profile["ip"] #RISKY
+        self.core.contacts.save()
 
     def receiveMessage(self, data):
         msg = {"text": data["text"], "self": False, "utc": data["utc"]}
         self.messages.append(Message(self.core, msg))
-        self.core.view.switch.get("MainView").content.chat.receiveMessage(self.token, self.messages[-1])
+        self.update(data["profile"])
         self.core.contacts.save()
         return True
 
@@ -213,6 +214,7 @@ class Contact:
 
     def sendMessage(self,text):
         self.core.client.send(self.ip, text)
+        self.core.contacts.save()
 
     def toArray(self):
         return {
@@ -248,6 +250,7 @@ class Storage(BaseModel):
 
     def save(self):
         self.writeData()
+        self.core.view.update()
 
     def loadData(self):
         if not os.path.isfile(DATA_URI):

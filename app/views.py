@@ -1,6 +1,8 @@
 from tkinter import *
 from PIL import Image, ImageTk
 
+import time
+
 class ViewManager:
 
     def __init__(self, core, root):
@@ -55,6 +57,9 @@ class ViewManager:
     def show(self, name):
         self.switch.show(name)
 
+    def update(self):
+        self.switch.update()
+
 
 class Switch:
 
@@ -82,6 +87,10 @@ class Switch:
         frame.place(relx=0, rely=0.03, relw=1, relh=0.97)
         return frame
 
+    def update(self):
+        for view in self.views:
+            view.update()
+
 
 class BaseView:
 
@@ -91,6 +100,9 @@ class BaseView:
 
     def show(self):
         self.root.tkraise()
+
+    def update(self):
+        pass
 
 
 class MainView(BaseView):
@@ -109,6 +121,16 @@ class MainView(BaseView):
         self.content = Content(self.core, self.root)
         self.content.title = ContentTitle("Chat", self.core, self.content.frame)
         self.content.chat = Chat(self.content.title, self.core,self.content.frame)
+
+    def update(self):
+        self.sider.update()
+        self.sider.navBack.update()
+        self.sider.contactList.update()
+        self.sider.addnearby.update()
+
+        self.content.update()
+        self.content.title.update()
+        self.content.chat.update()
 
 
 class SettingsView(BaseView):
@@ -144,6 +166,18 @@ class SettingsView(BaseView):
         self.content.entry_storage.setValue(self.core.storage.getSizeReadable())
         self.content.entry_storage.entry.configure(state='readonly')
 
+    def update(self):
+        self.sider.update()
+        self.sider.navBack.update()
+
+        self.content.update()
+        self.content.title.update()
+
+        self.content.entry_username.setValue(self.core.profile.username)
+        self.content.entry_token.setValue(self.core.profile.token)
+        self.content.entry_ip.setValue(self.core.profile.ip)
+        #self.content.entry_storage.setValue(self.core.storage.getSizeReadable())
+
 
 class SearchView(BaseView):
 
@@ -167,12 +201,24 @@ class SearchView(BaseView):
         panel.image = img
         panel.place(relx=0, rely=0.11, relw=1, relh=0.89)
 
+    def update(self):
+        self.sider.update()
+        self.sider.navBack.update()
+        self.sider.nearbyList.update()
+        self.sider.searching.update()
+
+        self.content.update()
+        self.content.title.update()
+
 
 class BaseElement:
 
     def __init__(self, core, root):
         self.core = core
         self.root = root
+
+    def update(self):
+        pass
 
 
 class Header(BaseElement):
@@ -302,6 +348,9 @@ class Sider(BaseElement):
 
         self.navSettings = NavigationSettings(self.core, self.frame)
 
+    def update(self):
+        self.navSettings.update()
+
 
 class NavigationBack(HoverButton):
 
@@ -329,13 +378,16 @@ class NavigationSettings(HoverButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.frame.config(text="⚪ "+self.core.profile.username, )
         self.frame.bind("<Button-1>", self.click)
         self.frame.place(relx=0, rely=0.92, relh=0.08, relw=1)
         self.setColor("#ddd", "#ccc")
+        self.update()
 
     def click(self, e):
         self.core.view.show("SettingsView")
+
+    def update(self):
+        self.frame.config(text="⚪ "+self.core.profile.username)
 
 
 class Content(BaseElement):
@@ -383,12 +435,12 @@ class MenuList(BaseElement):
         super().__init__(*args, **kwargs)
         self.list = []
         self.frame = Frame(self.root, bg="#eee")
-        self.frame.place(relx=0, rely=0, relw=1)
+        self.frame.pack(fill=X)
 
     def clear(self):
-        for e in self.list:
-            e.frame.destroy()
-            del e
+        for element in self.list:
+            element.frame.destroy()
+            del element
 
 
 class MenuElement(HoverButton):
@@ -402,6 +454,10 @@ class MenuElement(HoverButton):
 
     def onclick(self,e):
         pass
+
+    def update(self):
+        self.frame.pack_forget()
+        self.frame.pack(fill=X)
 
 
 class ContactList(MenuList):
@@ -475,6 +531,9 @@ class Chat(BaseElement):
 
     def load(self, token):
         self.active = self.core.contacts.get(token)
+        self.refresh()
+
+    def refresh(self):
         self.title.text(self.active.username)
         self.window.clear()
         for message in self.active.messages:
@@ -487,6 +546,15 @@ class Chat(BaseElement):
             self.window.showNew()
         self.window.showNew()
 
+    def update(self):
+        if self.active == False:
+            return
+        for msg in self.active.messages:
+            if not any(element.message == msg for element in self.window.messages):
+                self.window.addMessage(msg)
+
+        print("___")
+        
 
 class ChatWindow(BaseElement):
 
@@ -496,6 +564,7 @@ class ChatWindow(BaseElement):
         self.chat = chat
         self.frame = VerticalScrolledFrame(self.root, bg="#fff")
         self.messages = []
+        self.lastupdate = time.time()
         self.frame.place(relx=0, rely=0, relw=1, relh=0.91)
     
     def clear(self):
@@ -505,6 +574,7 @@ class ChatWindow(BaseElement):
         self.messages = []
 
     def addMessage(self, message):
+        self.lastupdate = time.time()
         self.messages.append(ChatMessage(message, self.core, self.frame.interior))
 
     def showNew(self):
@@ -544,10 +614,9 @@ class Input(BaseElement):
         value = self.entry.get()
         if value == "":
             return
-        self.onsend(value)
         self.entry.delete(0,END)
         self.entry.insert(0,"")
-
+        self.onsend(value)
 
 class InputButton(BaseElement):
 
@@ -596,7 +665,6 @@ class SettingInput(BaseElement):
 
     def onchange(self,value):
         pass
-
 
 
 # by https://gist.github.com/bakineugene/76c8f9bcec5b390e45df
