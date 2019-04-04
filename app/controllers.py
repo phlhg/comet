@@ -18,3 +18,6 @@ class Core(BaseController):
         self.client = Client(self)
 
         BaseController.view.open()
+
+    def quit(self):
+        sys.exit()

@@ -31,6 +31,7 @@ class Client(BaseModel):
         
         #PH: Needed to change this in order to quit the thread.
         self.listeningThread = threading.Thread(target=self.listen)
+        self.listeningThread.setDaemon(True)
         self.listeningThread.start()  # open for connection
 
     def listen(self):

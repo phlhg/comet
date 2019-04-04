@@ -53,6 +53,7 @@ class ViewManager:
 
     def close(self):
         self.root.destroy()
+        self.core.quit()
 
     def show(self, name):
         self.switch.show(name)
