@@ -125,6 +125,7 @@ class ContactManager:
         self.contacts = []
         self.nearby = []
         self.getContacts(self.core.storage.data["contacts"])
+        self.sort()
 
     def getContacts(self, data):
         for token, contactData in data.items():
@@ -175,7 +176,11 @@ class ContactManager:
             contact = self.add(data["profile"])
         return contact.receiveMessage(data)
 
+    def sort(self):
+        self.contacts.sort(key=lambda c: c.key(), reverse=True)
+
     def save(self):
+        self.sort()
         self.core.storage.data["contacts"] = self.toArray()
         self.core.storage.save()
 
@@ -215,6 +220,11 @@ class Contact:
     def sendMessage(self,text):
         self.core.client.send(self.ip, text)
         self.core.contacts.save()
+
+    def key(self):
+        if len(self.messages) < 1:
+            return -1
+        return self.messages[len(self.messages)-1].time
 
     def toArray(self):
         return {
