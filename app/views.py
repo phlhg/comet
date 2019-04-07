@@ -118,7 +118,7 @@ class MainView(BaseView):
         self.sider.navBack = NavigationBack("", "", self.core, self.sider.frame)
         self.sider.contactList = ContactList(self.core, self.sider.frame)
         self.sider.addnearby = MenuElement("", self.core, self.sider.frame)
-        self.sider.addnearby.frame.config(fg="#999", text="+ Freunde finden", command=lambda controller=self.core: controller.view.show("SearchView"))
+        self.sider.addnearby.frame.config(fg="#999", text="+ Personen finden", command=lambda controller=self.core: controller.view.show("SearchView"))
 
         self.content = Content(self.core, self.root)
         self.content.title = ContentTitle("Chat", self.core, self.content.frame)
@@ -199,7 +199,7 @@ class SearchView(BaseView):
         self.sider.searching.setColor("#eee","#eee")
 
         self.content = Content(self.core, self.root)
-        self.content.title = ContentTitle("Freunde finden", self.core, self.content.frame)
+        self.content.title = ContentTitle("Personen finden", self.core, self.content.frame)
 
         img = PhotoImage(file="app/img/network.png")
         panel = Label(self.content.frame, bg="#fff", image=img)
