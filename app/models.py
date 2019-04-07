@@ -11,7 +11,7 @@ sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"ruebl
 
 
 DEFAULT_PORT = 1516
-DATA_URI = "app/data.json"
+DATA_URI = os.path.expanduser("~\\Documents\\COMET\\data.json")
 
 
 class BaseModel:
@@ -42,31 +42,41 @@ class Client(BaseModel):
         self.listeningThread.setDaemon(True)
         self.listeningThread.start()  # open for connection
 
+        self.searchingThread = threading.Thread(target=self.search)
+        self.searchingThread.setDaemon(True)
+        self.searchingThread.start()
+
     def listen(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((self.ip, DEFAULT_PORT))
         print("[log] listening at", self.ip, DEFAULT_PORT)
 
-        s.listen()
-        conn, addr = s.accept()
-        print("[log] received connection")
-        msg = str(conn.recv(4096), 'utf8')
-        msg = msg.replace("'", '"')
-        print("[log, msg in]", msg)  # debug log
+        try:
+            s.listen()
+            conn, addr = s.accept()
+            with conn:
+                print("[log] received connection by ", addr)
+                msg = str(conn.recv(4096), 'utf8')
+                msg = msg.replace("'", '"')
+                print("[log, msg in]", msg)  # debug log
 
-        msg = json.loads(msg)
-        command = msg['command']
-        print("command:", command)
-        profile = msg['profile']
+                if msg != "":
+                    msg = json.loads(msg)
+                    command = msg['command']
+                    print("command:", command)
+                    profile = msg['profile']
 
-        # command handling
-        if command == "searching":
-            self.send(profile['ip'], self.profile.toDict(), command="found")    # send own profile with found cmd
-        elif command == "found":
-            self.contacts.addNearby(profile)
-        elif command == "none":
-            self.contacts.receiveMessage(msg)
-
+                    # command handling
+                    if command == "searching":
+                        self.send(profile['ip'], self.profile.toDict(), command="found") # send own profile with found cmd
+                        self.contacts.addNearby(profile) 
+                    elif command == "found":
+                        self.contacts.addNearby(profile)
+                    elif command == "none":
+                        self.contacts.receiveMessage(msg)
+        except socket.error:
+            print(socket.error)
+            
         s.close()   # socket is closed on receiving end
         self.listen()   # listen for next msg
 
@@ -74,13 +84,40 @@ class Client(BaseModel):
         print("[log] building connection to {} : {}...".format(ip, DEFAULT_PORT))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, DEFAULT_PORT))
-        self.contacts.getByIP(ip).createMessage(text)   # store msg for local display
+        p = self.contacts.getByIP(ip)
+        if p != False and command == "none":
+            p.createMessage(text)   # store msg for local display
         msg = {"profile": self.profile.toDict(), "text": text, "utc": round(time.time()), "command":command}
         s.sendall(bytes(str(msg), 'utf8'))
         print("[log] sent:", msg)
 
+
     def search(self):
-        pass  # contactManager.addNearby(profile)
+        parts = self.ip.split(".")
+        pre = parts[0]+"."+parts[1]+"."
+
+        found = []
+
+        for i in range(0,2):
+            for j in range(0,256):
+                ip = pre + str(i) + "." + str(j)
+                if ip != self.ip:
+                    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+                    s.settimeout(0.05)
+                    ex = s.connect_ex((ip,DEFAULT_PORT))
+                    if ex == 0:
+                        found.append(s)
+                    else:
+                        s.close()
+
+        for s in found:
+            msg = {"profile": self.profile.toDict(), "text": "", "utc": round(time.time()), "command":"searching" }
+            s.sendall(bytes(str(msg), 'utf8'))
+            s.close()
+
+        print(found)
+        time.sleep(10)
+        self.search()
 
 
 class Profile(BaseModel):
@@ -203,7 +240,8 @@ class ContactManager:
         found = [c for c in self.nearby if c.token == profile["token"]]
         if len(found) > 0:
             return
-        self.nearby.append(Contact(self,profile["token"],profile))
+        data = {"username": profile["username"], "ip": profile["ip"], "messages": []}
+        self.nearby.append(Contact(self.core,profile["token"],data))
         self.core.view.update()
 
     def addFromNearby(self, token):
@@ -482,6 +520,12 @@ class Storage(BaseModel):
         self.data = {"profile": {"username": "Nutzername", "token": "", "ip": ""}, "contacts": {}, "settings": {}}
         self.writeData()
 
+    def clear(self):
+        """Clear Contacts and Messages from Storage"""
+        self.data["contacts"] = {}
+        self.core.contacts.contacts = []
+        self.save()
+
     def getSize(self):
         """Returns the total size of the application.
         
@@ -508,6 +552,6 @@ class Storage(BaseModel):
         if countBytes == 0:
             return '0 Byte'
         i = int(math.floor(math.log(countBytes) / math.log(1024)))
-        return str(round(countBytes / math.pow(1024, i), 0)) + ' ' + units[i]
+        return str(int(round(countBytes / math.pow(1024, i), 0))) + ' ' + units[i]
 
 

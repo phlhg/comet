@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 
 import time
 
+
 class ViewManager:
 
     def __init__(self, core, root):
@@ -166,6 +167,9 @@ class SettingsView(BaseView):
         self.content.entry_storage.setLabel("Benötigter Speicherplatz")
         self.content.entry_storage.setValue(self.core.storage.getSizeReadable())
         self.content.entry_storage.entry.configure(state='readonly')
+
+        self.content.action_clear = SettingsAction("Speicher Leeren", self.core, self.content.frame)
+        self.content.action_clear.onclick = lambda: self.core.storage.clear()
 
     def update(self):
         self.sider.update()
@@ -508,9 +512,9 @@ class NearbyListElement(MenuElement):
         self.frame.bind("<Button-1>",self.onclick)
 
     def onclick(self,e):
-        self.core.contacts.addFromNearBy(self.contact.token)
+        self.core.contacts.addFromNearby(self.contact.token)
         self.core.view.switch.get("MainView").content.chat.load(self.contact.token)
-        self.core.view.swicth.show("MainView")
+        self.core.view.switch.show("MainView")
 
 
 class Chat(BaseElement):
@@ -548,6 +552,8 @@ class Chat(BaseElement):
         self.window.showNew()
 
     def update(self):
+        if len(self.core.contacts.contacts) < 1:
+            self.active = False
         if self.active == False:
             return
         for msg in self.active.messages:
@@ -664,6 +670,22 @@ class SettingInput(BaseElement):
 
     def onchange(self,value):
         pass
+
+
+class SettingsAction(HoverButton):
+
+    def __init__(self, text, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.text = text
+        self.onclick = lambda: print("")
+        self.frame.config(text=self.text,fg="#fff", activeforeground="#fff")
+        self.setColor("#F00","#D00")
+        self.frame.pack(anchor=E, padx=20, pady=10)
+        self.frame.bind("<Button-1>",self.__onclick)
+
+    def __onclick(self,e):
+        self.onclick()
 
 
 # by https://gist.github.com/bakineugene/76c8f9bcec5b390e45df
