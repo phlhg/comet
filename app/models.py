@@ -11,7 +11,7 @@ sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"ruebl
 
 
 DEFAULT_PORT = 1516
-DATA_URI = os.path.expanduser("~\\Documents\\COMET\\data.json")
+DATA_URI = os.path.expanduser("~\\Documents\\COMET\\data.json").replace("\\","/")
 
 
 class BaseModel:
