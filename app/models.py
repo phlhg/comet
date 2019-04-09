@@ -11,7 +11,7 @@ sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"ruebl
 
 
 DEFAULT_PORT = 1516
-DATA_URI = os.path.expanduser("~\\Documents\\COMET\\data.json").replace("\\","/")
+DATA_URI = os.path.expanduser("~\\Documents\\COMET\\data.json")
 
 
 class BaseModel:
@@ -516,6 +516,7 @@ class Storage(BaseModel):
             f.write(self.raw.encode("UTF-8"))
 
     def createData(self):
+        os.mkdir(os.path.dirname(DATA_URI))
         """Creates a template to initialize the JSON-file"""
         self.data = {"profile": {"username": "Nutzername", "token": "", "ip": ""}, "contacts": {}, "settings": {}}
         self.writeData()
