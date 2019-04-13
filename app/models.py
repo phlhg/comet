@@ -98,7 +98,7 @@ class Client(BaseModel):
 
         found = []
 
-        for i in range(0,2):
+        for i in [int(parts[2]),0]:
             for j in range(0,256):
                 ip = pre + str(i) + "." + str(j)
                 if ip != self.ip:
@@ -106,14 +106,10 @@ class Client(BaseModel):
                     s.settimeout(0.05)
                     ex = s.connect_ex((ip,DEFAULT_PORT))
                     if ex == 0:
-                        found.append(s)
+                        s.sendall(bytes(str({"profile": self.profile.toDict(), "text": "", "utc": round(time.time()), "command":"searching" }), 'utf8'))
+                        s.close()
                     else:
                         s.close()
-
-        for s in found:
-            msg = {"profile": self.profile.toDict(), "text": "", "utc": round(time.time()), "command":"searching" }
-            s.sendall(bytes(str(msg), 'utf8'))
-            s.close()
 
         print(found)
         time.sleep(10)
