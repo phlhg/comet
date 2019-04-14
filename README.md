@@ -7,6 +7,7 @@ COMET P2P is a python based peer-to-peer chat application.<br/>
 ## Required Packages
 * Tkinter (` cmd> python -m pip install tkinter `)
 * Pillow (` cmd> python -m pip install pillow `)
+* win10toast (` cmd> python -m pip install win10toast `)
 
 ## Run
 You can run the application by executing `main.py`

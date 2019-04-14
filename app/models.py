@@ -5,6 +5,7 @@ import socket
 import threading
 import random
 import time
+from win10toast import ToastNotifier
 '''
 sample message: "{"profile": {"token":"12345", "ip":"1.1.1.1", "username":"rueblibuur"}, "text": "hello there", "utc":0, "command":"searching/found/none"}
 '''
@@ -114,6 +115,16 @@ class Client(BaseModel):
         print(found)
         time.sleep(10)
         self.search()
+
+    def showToast(self,title,text,duration=10):
+        """Shows a Windows Toast-Notification to the client
+        
+        Args:
+            title (str): The title of the Toast-Notification.
+            text (str): The content of the Toast-Notification.
+            duration(int): Number of seconds to show the Notification (default: 10)
+        """
+        ToastNotifier().show_toast(title,text,icon_path="app/img/favicon.ico",duration=duration)
 
 
 class Profile(BaseModel):
@@ -390,6 +401,7 @@ class Contact:
         msg = {"text": data["text"], "self": False, "utc": data["utc"]}
         self.messages.append(Message(self.core, msg))
         self.update(data["profile"])
+        self.core.client.showToast(data["profile"]["username"], data["text"])
         self.core.contacts.save()
         return self.messages[-1]
 
